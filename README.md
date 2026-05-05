@@ -24,9 +24,10 @@ python3 -m streamlit run stock_ai_app.py
 ## Deploy from GitHub (recommended: Streamlit Community Cloud)
 
 1. Push this project to your GitHub repo.
-2. In Streamlit Community Cloud, create a new app from your repo.
-3. Set `Main file path` to `stock_ai_app.py`.
-4. In **App settings -> Secrets**, add:
+2. Keep `runtime.txt` in the repo (`python-3.11`) so Streamlit does not use Python 3.14.
+3. In Streamlit Community Cloud, create a new app from your repo.
+4. Set `Main file path` to `stock_ai_app.py`.
+5. In **App settings -> Secrets**, add:
 
 ```toml
 GROQ_API_KEY = "..."
@@ -35,7 +36,7 @@ APP_PASSWORD = "optional"
 MAX_REQUESTS_PER_SESSION = 5
 ```
 
-5. Deploy.
+6. Deploy.
 
 ## Important key-safety notes
 
