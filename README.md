@@ -24,10 +24,11 @@ python3 -m streamlit run stock_ai_app.py
 ## Deploy from GitHub (recommended: Streamlit Community Cloud)
 
 1. Push this project to your GitHub repo.
-2. Keep `runtime.txt` (`python-3.11`) and `.python-version` (`3.11`) in the repo so Streamlit/uv does not use Python 3.14.
-3. In Streamlit Community Cloud, create a new app from your repo.
-4. Set `Main file path` to `stock_ai_app.py`.
-5. In **App settings -> Secrets**, add:
+2. Keep `runtime.txt` (`python-3.11`) and `.python-version` (`3.11`) in the repo.
+3. Keep `packages.txt` in the repo to install system dependencies (`rustc`, `cargo`, `build-essential`) needed when Streamlit builds `tiktoken` from source.
+4. In Streamlit Community Cloud, create a new app from your repo.
+5. Set `Main file path` to `stock_ai_app.py`.
+6. In **App settings -> Secrets**, add:
 
 ```toml
 GROQ_API_KEY = "..."
@@ -36,7 +37,7 @@ APP_PASSWORD = "optional"
 MAX_REQUESTS_PER_SESSION = 5
 ```
 
-6. Deploy.
+7. Deploy.
 
 ## Important key-safety notes
 
