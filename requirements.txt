@@ -1,0 +1,10 @@
+crewai
+crewai-tools
+yfinance
+serpapi
+litellm
+streamlit
+
+# Optional legacy fallback for older SerpAPI code paths:
+# google-search-results
+
