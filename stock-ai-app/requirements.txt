@@ -4,3 +4,4 @@ yfinance==0.2.41
 serpapi==1.0.2
 tiktoken>=0.7.0
 setuptools
+rich>=13.7.0,<14
