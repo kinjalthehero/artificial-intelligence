@@ -106,9 +106,8 @@ os.environ["SERPAPI_KEY"] = serpapi_key
 ## default groq model is llama3-8b
 # cache the LLM initialization to avoid re-initializing on every run which can be time consuming
 @st.cache_resource
-def get_llm(groq_key):
-    #  initialize the LLM with the Groq API key and specify the model to use
-    return LLM(model="groq/llama-3.3-70b-versatile", api_key=groq_key, temperature=0.7)
+def get_llm(_groq_key):
+    return LLM(model="groq/llama-3.3-70b-versatile", api_key=_groq_key, temperature=0.7)
 
 llm = get_llm(groq_key)
 
@@ -202,12 +201,12 @@ yahoo_finance_tool = YahooFinanceTool()
 ## create agents
 
 @st.cache_resource
-def get_agents(llm):
+def get_agents(_llm):
     analyst = Agent(
         role="Stock Analyst Agent",
         goal="Analyze the stock based on the latest news and financial data, and provide insights and recommendations.",
         backstory="You are a stock analyst with expertise in financial markets and news analysis. Your task is to analyze the stock based on the latest news and financial data, and provide insights and recommendations.",
-        llm=llm,
+        llm=_llm,
         tools=[stock_search_tool, yahoo_finance_tool]
     )
 
@@ -215,7 +214,7 @@ def get_agents(llm):
         role="Stock Report Writer Agent",
         goal="Write a comprehensive stock analysis report based on the insights provided by the analyst agent.",
         backstory="You are a skilled writer with expertise in financial writing. Your task is to write a comprehensive stock analysis report based on the insights provided by the analyst agent.",
-        llm=llm
+        llm=_llm
     )
 
     return analyst, writer
