@@ -119,14 +119,24 @@ Get free keys at:
 5. Add your keys in **App settings > Secrets**
 6. Deploy
 
-## Project Files
+## Project Structure
 
-| File | Purpose |
-|------|---------|
-| `stock_ai_app.py` | Main application — agents, tools, UI, and orchestration |
-| `requirements.txt` | Python dependencies |
-| `.streamlit/secrets.toml.example` | Template for API keys |
-| `Whisper_High_Accuracy_Transcriber.ipynb` | Bonus: OpenAI Whisper audio transcription notebook |
+```
+stock-ai-app/
+├── stock_ai_app.py        # Streamlit entry point — wires everything together
+├── config.py              # Secrets loading, env vars, session quota
+├── agents.py              # CrewAI agents, task prompts, crew orchestration
+├── tools/
+│   ├── stock_data.py      # Yahoo Finance tool + get_stock_snapshot()
+│   └── news_search.py     # SerpAPI news search tool
+├── ui/
+│   ├── styles.py          # CSS styles
+│   ├── components.py      # Metric cards, report header, sidebar, hero, footer
+│   └── pages.py           # Landing page tabs (tech stack, how to use, limits)
+├── requirements.txt       # Python dependencies
+└── .streamlit/
+    └── secrets.toml.example  # Template for API keys
+```
 
 ## Author
 
