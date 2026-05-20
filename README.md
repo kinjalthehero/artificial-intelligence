@@ -4,7 +4,7 @@ A collection of AI/ML projects.
 
 ## Projects
 
-### [Stock AI App](Stock%20AI%20App/)
+### [stock-ai-app](stock-ai-app/)
 
 A multi-agent stock analysis app using:
 - `CrewAI` for agent orchestration
@@ -15,7 +15,7 @@ A multi-agent stock analysis app using:
 #### Run locally
 
 ```zsh
-cd "Stock AI App"
+cd "stock-ai-app"
 python3 -m venv venv
 source venv/bin/activate
 python3 -m pip install -r requirements.txt
@@ -24,8 +24,8 @@ python3 -m streamlit run stock_ai_app.py
 
 #### Local secrets setup
 
-1. Create `Stock AI App/.streamlit/secrets.toml`.
-2. Copy values from `Stock AI App/.streamlit/secrets.toml.example`.
+1. Create `stock-ai-app/.streamlit/secrets.toml`.
+2. Copy values from `stock-ai-app/.streamlit/secrets.toml.example`.
 3. Fill your real keys.
 
 #### Deploy from GitHub (recommended: Streamlit Community Cloud)
@@ -34,7 +34,7 @@ python3 -m streamlit run stock_ai_app.py
 2. Keep `runtime.txt` (`python-3.11`) and `.python-version` (`3.11`) in the repo.
 3. Keep `packages.txt` in the repo to install system dependencies (`rustc`, `cargo`, `build-essential`) needed when Streamlit builds `tiktoken` from source.
 4. In Streamlit Community Cloud, create a new app from your repo.
-5. Set `Main file path` to `Stock AI App/stock_ai_app.py`.
+5. Set `Main file path` to `stock-ai-app/stock_ai_app.py`.
 6. In **App settings -> Secrets**, add:
 
 ```toml
