@@ -792,19 +792,58 @@ if analyze_btn:
 
             except Exception as e:
                 status.update(label="Analysis failed", state="error", expanded=False)
-                st.error(f"An error occurred: {str(e)}")
+                err = str(e)
+                if "rate_limit" in err.lower() or "ratelimit" in err.lower():
+                    st.warning(
+                        "**Groq Rate Limit Reached** — The free-tier AI model has a limit of "
+                        "12,000 tokens per minute. This happens when too many requests are made "
+                        "in a short time.\n\n"
+                        "**What to do:** Wait 15–30 seconds and click **Analyze Stock** again. "
+                        "If this keeps happening, toggle **Use my own API keys** in the sidebar "
+                        "and enter your own free Groq key from [console.groq.com](https://console.groq.com/keys)."
+                    )
+                elif "api_key" in err.lower() or "authentication" in err.lower() or "unauthorized" in err.lower():
+                    st.error(
+                        "**Invalid API Key** — The API key was rejected. Please check that your "
+                        "Groq and SerpAPI keys are correct in the sidebar."
+                    )
+                else:
+                    st.error(f"**Analysis failed** — Something went wrong during the analysis. Please try again.\n\nDetails: {err}")
                 st.stop()
 
         result_text = str(result).replace('$', r'\$')
 
-        st.markdown(f"""
-        <div class="report-container">
-            <div class="report-header">
-                <h2>Analysis Report: {ticker}</h2>
-                <span class="report-badge">AI Generated</span>
+        if snapshot:
+            st.markdown(f"""
+            <div class="report-container">
+                <div class="report-header">
+                    <h2>Analysis Report: {ticker}</h2>
+                    <span class="report-badge">AI Generated</span>
+                </div>
+                <div style="display:flex; gap:24px; flex-wrap:wrap; margin-top:0.5rem;">
+                    <div>
+                        <span style="font-size:0.75rem; color:#6b7280; text-transform:uppercase; font-weight:600;">Live Price</span><br>
+                        <span style="font-size:1.6rem; font-weight:700; color:#1a1a2e;">\\${snapshot['price']:.2f}</span>
+                    </div>
+                    <div>
+                        <span style="font-size:0.75rem; color:#6b7280; text-transform:uppercase; font-weight:600;">30-Day</span><br>
+                        <span style="font-size:1.6rem; font-weight:700;" class="{'positive' if snapshot['change_pct'] >= 0 else 'negative'}">{'+' if snapshot['change_pct'] >= 0 else ''}{snapshot['change_pct']:.1f}%</span>
+                    </div>
+                    {"<div><span style='font-size:0.75rem; color:#6b7280; text-transform:uppercase; font-weight:600;'>52-Week Range</span><br><span style='font-size:1.1rem; font-weight:600; color:#374151;'>$" + f"{snapshot['w52_low']:.0f} - ${snapshot['w52_high']:.0f}" + "</span></div>" if snapshot.get('w52_high') and snapshot.get('w52_low') else ""}
+                    {"<div><span style='font-size:0.75rem; color:#6b7280; text-transform:uppercase; font-weight:600;'>P/E</span><br><span style='font-size:1.1rem; font-weight:600; color:#374151;'>" + f"{snapshot['pe']:.1f}" + "</span></div>" if snapshot.get('pe') else ""}
+                    {"<div><span style='font-size:0.75rem; color:#6b7280; text-transform:uppercase; font-weight:600;'>Analyst Target</span><br><span style='font-size:1.1rem; font-weight:600; color:#374151;'>$" + f"{snapshot['analyst_target']:.2f}" + "</span></div>" if snapshot.get('analyst_target') else ""}
+                </div>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <div class="report-container">
+                <div class="report-header">
+                    <h2>Analysis Report: {ticker}</h2>
+                    <span class="report-badge">AI Generated</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
         st.markdown(result_text)
 
