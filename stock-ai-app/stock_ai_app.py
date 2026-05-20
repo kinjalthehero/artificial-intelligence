@@ -660,6 +660,27 @@ if analyze_btn:
             </div>
             """, unsafe_allow_html=True)
 
+        price_context = ""
+        if snapshot:
+            parts = [f"LIVE DATA for {ticker} (from Yahoo Finance, fetched just now):"]
+            parts.append(f"- Company: {snapshot['name']}")
+            parts.append(f"- Current Price: ${snapshot['price']:.2f}")
+            parts.append(f"- 30-Day Change: {snapshot['change_pct']:+.2f}%")
+            parts.append(f"- 30-Day High: ${snapshot['high']:.2f}")
+            parts.append(f"- 30-Day Low: ${snapshot['low']:.2f}")
+            if snapshot.get("pe"):
+                parts.append(f"- P/E Ratio (Trailing): {snapshot['pe']:.1f}")
+            if snapshot.get("fwd_pe"):
+                parts.append(f"- P/E Ratio (Forward): {snapshot['fwd_pe']:.1f}")
+            if snapshot.get("w52_high") and snapshot.get("w52_low"):
+                parts.append(f"- 52-Week High: ${snapshot['w52_high']:.2f}")
+                parts.append(f"- 52-Week Low: ${snapshot['w52_low']:.2f}")
+            if snapshot.get("analyst_target"):
+                parts.append(f"- Analyst Mean Price Target: ${snapshot['analyst_target']:.2f}")
+            if snapshot.get("recommendation"):
+                parts.append(f"- Analyst Consensus: {snapshot['recommendation'].upper()}")
+            price_context = "\n".join(parts)
+
         status = st.status(f"Analyzing **{ticker}**...", expanded=True)
         with status:
             try:
@@ -674,7 +695,8 @@ if analyze_btn:
                         f"(3) major business events — new products, partnerships, acquisitions, "
                         f"lawsuits, leadership changes, insider buying/selling "
                         f"(4) sector trends — is the industry doing well or struggling? "
-                        f"Rate the overall sentiment as BULLISH, BEARISH, or NEUTRAL with evidence."
+                        f"Rate the overall sentiment as BULLISH, BEARISH, or NEUTRAL with evidence.\n\n"
+                        f"{price_context}"
                     ),
                     expected_output=(
                         "Structured findings: recent earnings summary (beat/miss/guidance), "
@@ -687,18 +709,23 @@ if analyze_btn:
                 st.markdown('<div class="agent-step"><span class="icon">2.</span><span class="text">Analyst: Analyzing price action and valuation...</span></div>', unsafe_allow_html=True)
                 price_task = Task(
                     description=(
-                        f"Fetch financial data for {ticker} and perform a valuation assessment. Analyze: "
+                        f"Analyze the financial data for {ticker} and perform a valuation assessment.\n\n"
+                        f"{price_context}\n\n"
+                        f"Using the LIVE DATA above and your tools, analyze: "
                         f"(1) current price vs 30-day high/low — is it near the top or bottom of its range? "
                         f"(2) 30-day price trend — uptrend, downtrend, or sideways? "
                         f"(3) momentum — is buying pressure increasing or decreasing? "
                         f"(4) support level (recent low where price bounced) and resistance level "
                         f"(recent high where price stalled) "
                         f"(5) valuation verdict — based on where the price sits in its range, "
-                        f"the trend direction, and the news sentiment from the previous task, "
+                        f"the P/E ratio, analyst targets, trend direction, and the news sentiment, "
                         f"classify the stock as: UNDERVALUED (trading below fair value, potential upside), "
                         f"FAIRLY VALUED (price reflects current fundamentals), or "
                         f"OVERVALUED (price has run ahead of fundamentals, limited upside or downside risk). "
-                        f"Explain your reasoning in 2-3 sentences."
+                        f"Explain your reasoning in 2-3 sentences. "
+                        f"IMPORTANT: You MUST reference the actual current price of ${snapshot['price']:.2f} in your analysis." if snapshot else
+                        f"Fetch and analyze the financial data for {ticker}. Assess valuation as "
+                        f"UNDERVALUED, FAIRLY VALUED, or OVERVALUED."
                     ),
                     expected_output=(
                         "Financial summary: current price, 30-day change %, trend direction, "
@@ -708,28 +735,43 @@ if analyze_btn:
                     agent=analyst_agent,
                 )
 
+                price_line = f"The current stock price is ${snapshot['price']:.2f}. " if snapshot else ""
                 st.markdown('<div class="agent-step"><span class="icon">3.</span><span class="text">Writer: Composing investment report with verdict...</span></div>', unsafe_allow_html=True)
                 report_task = Task(
                     description=(
                         f"Write a clean, easy-to-read investment report for {ticker}. "
-                        f"Use the analyst's research and follow this EXACT structure:\n\n"
+                        f"{price_line}"
+                        f"Use the analyst's research and the live data below.\n\n"
+                        f"{price_context}\n\n"
+                        f"Follow this EXACT structure:\n\n"
+                        f"**Recommendation: BUY / HOLD / SELL** (pick one, bold it)\n"
+                        f"**Valuation: UNDERVALUED / FAIRLY VALUED / OVERVALUED** (from analyst's assessment)\n"
+                        f"**Price Target: $X - $Y** (estimated 3-6 month range — must be realistic relative to the current price of ${snapshot['price']:.2f})\n\n" if snapshot else
+                        f"Follow this EXACT structure:\n\n"
                         f"**Recommendation: BUY / HOLD / SELL** (pick one, bold it)\n"
                         f"**Valuation: UNDERVALUED / FAIRLY VALUED / OVERVALUED** (from analyst's assessment)\n"
                         f"**Price Target: $X - $Y** (estimated 3-6 month range)\n\n"
+                    ) + (
                         f"Then these sections:\n"
                         f"- **Why this rating** — 2-3 sentences explaining the recommendation\n"
                         f"- **What's happening** — 3-4 bullet points of the most important recent news, "
                         f"earnings, or analyst actions. Use specific numbers and dates.\n"
-                        f"- **Price action** — Current price, 30-day trend, support/resistance levels, "
-                        f"and where it sits in its range\n"
+                        f"- **Price action** — Current price (${snapshot['price']:.2f}), 30-day trend, "
+                        f"support/resistance levels, and where it sits in its range\n" if snapshot else
+                        f"Then these sections:\n"
+                        f"- **Why this rating** — 2-3 sentences explaining the recommendation\n"
+                        f"- **What's happening** — 3-4 bullet points of the most important recent news, "
+                        f"earnings, or analyst actions. Use specific numbers and dates.\n"
+                        f"- **Price action** — Current price, 30-day trend, support/resistance levels\n"
+                    ) + (
                         f"- **Reasons to be bullish** — 2-3 specific reasons the stock could go higher\n"
                         f"- **Risks to watch** — 2-3 specific risks that could hurt the stock\n"
                         f"- **The verdict** — End with a clear, decisive 2-3 sentence conclusion. "
                         f"Restate the recommendation, valuation, and price target. "
                         f"Tell the investor exactly what you would do.\n\n"
-                        f"IMPORTANT: Keep it under 400 words. Use simple language — write for someone "
-                        f"who reads financial news but is not a professional trader. Every sentence "
-                        f"should help the reader make a decision. No filler."
+                        f"IMPORTANT: Keep it under 400 words. Use simple language. "
+                        f"The price target MUST be realistic — do not set a target below the current price "
+                        f"for a BUY recommendation or above it for a SELL recommendation."
                     ),
                     expected_output=(
                         "A structured report with: recommendation (BUY/HOLD/SELL), "
