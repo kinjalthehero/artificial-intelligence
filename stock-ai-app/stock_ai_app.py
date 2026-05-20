@@ -682,7 +682,7 @@ if analyze_btn:
 
             w52_html = ""
             if snapshot.get("w52_high") and snapshot.get("w52_low"):
-                w52_html = f'<div class="metric-card"><div class="label">52-Week Range</div><div class="value" style="font-size:1rem">\\${snapshot["w52_low"]:.0f} - \\${snapshot["w52_high"]:.0f}</div></div>'
+                w52_html = f'<div class="metric-card"><div class="label">52-Week Range</div><div class="value" style="font-size:1rem">${snapshot["w52_low"]:.0f} - ${snapshot["w52_high"]:.0f}</div></div>'
 
             target_html = ""
             if snapshot.get("analyst_target"):
@@ -690,7 +690,14 @@ if analyze_btn:
                 upside_class = "positive" if upside >= 0 else "negative"
                 upside_sign = "+" if upside >= 0 else ""
                 rec_label = (snapshot.get("recommendation") or "").upper()
-                target_html = f'<div class="metric-card"><div class="label">Analyst Target</div><div class="value">\\${snapshot["analyst_target"]:.2f}</div><div class="sub {upside_class}">{upside_sign}{upside:.1f}% &bull; {rec_label}</div></div>'
+                target_html = f'<div class="metric-card"><div class="label">Analyst Target</div><div class="value">${snapshot["analyst_target"]:.2f}</div><div class="sub {upside_class}">{upside_sign}{upside:.1f}% &bull; {rec_label}</div></div>'
+
+            has_history = snapshot.get("change_pct") != 0.0 or snapshot.get("high") != snapshot.get("low")
+            if has_history:
+                change_val = f'{change_sign}{snapshot["change_pct"]:.1f}%'
+            else:
+                change_val = "N/A"
+                change_class = ""
 
             st.markdown(f"""
             <div class="metric-row">
@@ -701,11 +708,11 @@ if analyze_btn:
                 </div>
                 <div class="metric-card">
                     <div class="label">Current Price</div>
-                    <div class="value">\\${snapshot["price"]:.2f}</div>
+                    <div class="value">${snapshot["price"]:.2f}</div>
                 </div>
                 <div class="metric-card">
                     <div class="label">30-Day Change</div>
-                    <div class="value {change_class}">{change_sign}{snapshot["change_pct"]:.1f}%</div>
+                    <div class="value {change_class}">{change_val}</div>
                 </div>
                 {pe_html}
                 {w52_html}
@@ -867,6 +874,13 @@ if analyze_btn:
         result_text = str(result).replace('$', r'\$')
 
         if snapshot:
+            rh_change_class = "positive" if snapshot["change_pct"] >= 0 else "negative"
+            rh_has_history = snapshot.get("change_pct") != 0.0 or snapshot.get("high") != snapshot.get("low")
+            if rh_has_history:
+                rh_change_html = f"<span style='font-size:1.6rem; font-weight:700;' class='{rh_change_class}'>{'+' if snapshot['change_pct'] >= 0 else ''}{snapshot['change_pct']:.1f}%</span>"
+            else:
+                rh_change_html = "<span style='font-size:1.1rem; font-weight:600; color:#6b7280;'>N/A</span>"
+
             st.markdown(f"""
             <div class="report-container">
                 <div class="report-header">
@@ -876,11 +890,11 @@ if analyze_btn:
                 <div style="display:flex; gap:24px; flex-wrap:wrap; margin-top:0.5rem;">
                     <div>
                         <span style="font-size:0.75rem; color:#6b7280; text-transform:uppercase; font-weight:600;">Live Price</span><br>
-                        <span style="font-size:1.6rem; font-weight:700; color:#1a1a2e;">\\${snapshot['price']:.2f}</span>
+                        <span style="font-size:1.6rem; font-weight:700; color:#1a1a2e;">${snapshot['price']:.2f}</span>
                     </div>
                     <div>
                         <span style="font-size:0.75rem; color:#6b7280; text-transform:uppercase; font-weight:600;">30-Day</span><br>
-                        <span style="font-size:1.6rem; font-weight:700;" class="{'positive' if snapshot['change_pct'] >= 0 else 'negative'}">{'+' if snapshot['change_pct'] >= 0 else ''}{snapshot['change_pct']:.1f}%</span>
+                        {rh_change_html}
                     </div>
                     {"<div><span style='font-size:0.75rem; color:#6b7280; text-transform:uppercase; font-weight:600;'>52-Week Range</span><br><span style='font-size:1.1rem; font-weight:600; color:#374151;'>$" + f"{snapshot['w52_low']:.0f} - ${snapshot['w52_high']:.0f}" + "</span></div>" if snapshot.get('w52_high') and snapshot.get('w52_low') else ""}
                     {"<div><span style='font-size:0.75rem; color:#6b7280; text-transform:uppercase; font-weight:600;'>P/E</span><br><span style='font-size:1.1rem; font-weight:600; color:#374151;'>" + f"{snapshot['pe']:.1f}" + "</span></div>" if snapshot.get('pe') else ""}
