@@ -1,6 +1,6 @@
 # Stock AI Analyst
 
-A multi-agent stock analysis app that generates comprehensive investment reports using AI. Enter any stock ticker and get a detailed analysis powered by two AI agents working together.
+A multi-agent stock analysis app that generates actionable investment reports with **BUY / HOLD / SELL recommendations** and **price target ranges**. Enter any stock ticker and get a professional-grade analysis powered by two AI agents working together.
 
 **[Try the Live App](https://stock-analysis-ai-web-app.streamlit.app/)**
 
@@ -8,39 +8,56 @@ A multi-agent stock analysis app that generates comprehensive investment reports
 
 The app uses **CrewAI** to orchestrate two AI agents that collaborate on each analysis:
 
-1. **Stock Analyst Agent** — Gathers the latest news (via SerpAPI) and financial data (via Yahoo Finance), then provides insights on price trends and market sentiment
-2. **Stock Report Writer Agent** — Takes the analyst's findings and writes a clear, concise investment report
+1. **Senior Equity Research Analyst** — Researches the latest news, earnings reports, analyst ratings, sector trends, and financial data. Identifies key catalysts, support/resistance levels, and assesses market sentiment (bullish/bearish/neutral).
+2. **Investment Report Writer** — Transforms the analyst's raw research into a structured report with a clear BUY/HOLD/SELL recommendation and 3–6 month price target range.
 
 ```
 User enters ticker (e.g. AAPL)
         |
         v
-+-----------------------+
-|  Analyst Agent        |
-|  - Fetches news       |--> SerpAPI (Google News)
-|  - Fetches prices     |--> Yahoo Finance (1-month data)
-|  - Generates insights |
-+-----------+-----------+
-            |
-            v
-+-----------------------+
-|  Writer Agent         |
-|  - Reads insights     |
-|  - Writes report      |--> Downloadable .txt report
-+-----------------------+
++---------------------------------+
+|  Senior Analyst Agent           |
+|  - Latest news & earnings       |--> SerpAPI (Google News)
+|  - Analyst ratings & catalysts  |
+|  - Price action & valuation     |--> Yahoo Finance (1-month data)
+|  - Sentiment: bullish/bearish   |
++---------------+-----------------+
+                |
+                v
++---------------------------------+
+|  Investment Writer Agent        |
+|  - BUY / HOLD / SELL verdict    |
+|  - 3-6 month price target range |
+|  - Bull case & bear case/risks  |--> Downloadable .txt report
+|  - Actionable conclusion        |
++---------------------------------+
 ```
+
+## Sample Report Structure
+
+Every analysis follows this format:
+
+1. **Recommendation** — Clear BUY, HOLD, or SELL verdict
+2. **Price Target** — Estimated range for the next 3–6 months
+3. **Summary** — 2–3 sentence overview
+4. **Key Highlights** — Earnings, news, analyst views
+5. **Financial Snapshot** — Current price, 30-day trend, support/resistance
+6. **Bull Case** — Top reasons the stock could go higher
+7. **Bear Case / Risks** — Top risks that could push it lower
+8. **Conclusion** — Final verdict with price target restated
 
 ## Features
 
-- **Multi-Agent AI** — Two specialized agents collaborate via CrewAI
+- **Actionable Reports** — Every analysis includes a BUY/HOLD/SELL recommendation and price target range
+- **Multi-Agent AI** — Two specialized agents (Analyst + Writer) collaborate via CrewAI
 - **Real-Time Data** — Latest stock prices from Yahoo Finance and news from Google via SerpAPI
 - **LLM Powered** — Uses Groq's Llama 3.3 70B model for fast inference
 - **Modern UI** — Gradient hero banner, live stock metric cards, step-by-step agent progress tracking
-- **Info Tabs** — Built-in Tech Stack, How to Use, and Limitations tabs for transparency
+- **Info Tabs** — Built-in Tech Stack, How to Use, and Limitations tabs
+- **Disclaimer** — Expandable disclaimer after every report (not financial advice, AI limitations, data freshness)
 - **Downloadable Reports** — Export analysis as a text file
 - **Hosted or BYOK** — Use the app owner's API keys or bring your own
 - **Session Limits** — Built-in rate limiting for shared hosted keys
-- **Password Protection** — Optional app password for controlled access
 
 ## Tech Stack
 
@@ -60,7 +77,9 @@ User enters ticker (e.g. AAPL)
 | **Groq** | ~30 req/min, 12,000 tokens/min | "Rate limit" errors — wait 10s and retry |
 | **SerpAPI** | 100 searches/month | Each analysis uses 1–2 searches |
 | **Streamlit Cloud** | Sleeps after inactivity | First load may take 30–60s to wake up |
-| **Llama 3.3 70B** | AI-generated content | May occasionally produce inaccurate data — verify with official sources |
+| **Llama 3.3 70B** | AI-generated content | May produce inaccurate data — verify with official sources |
+
+> **Disclaimer:** Reports are AI-generated for informational/educational purposes only. They do not constitute financial advice. Always verify with official sources and consult a licensed financial advisor before making investment decisions.
 
 ## Run Locally
 
