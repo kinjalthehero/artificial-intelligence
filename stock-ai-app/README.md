@@ -54,6 +54,7 @@ Every analysis follows this format:
 - **Valuation Analysis** — Determines if a stock is undervalued, fairly valued, or overvalued based on price action, P/E ratios, 52-week range, and analyst consensus
 - **Rich Data** — P/E ratio, forward P/E, 52-week range, analyst price targets, market cap, dividend yield, and momentum signals
 - **Multi-Agent AI** — Two specialized agents (Analyst + Writer) collaborate via CrewAI
+- **Live Price Injection** — Real-time stock price, P/E, and analyst targets are fetched from Yahoo Finance and injected directly into agent prompts, ensuring reports always reference accurate current prices
 - **Real-Time Data** — Latest stock prices from Yahoo Finance and news from Google via SerpAPI
 - **LLM Powered** — Uses Groq's Llama 3.3 70B model for fast inference
 - **Modern UI** — Gradient hero banner, live stock metric cards (price, P/E, 52-week range, analyst target), step-by-step agent progress
