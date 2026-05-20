@@ -155,6 +155,47 @@ st.markdown("""
     }
     .step .desc { font-size: 0.8rem; color: #4b5563; line-height: 1.4; }
 
+    .info-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1.2rem 1.5rem;
+        margin-bottom: 10px;
+    }
+    .info-card h4 {
+        margin: 0 0 0.6rem 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #1a1a2e;
+    }
+    .info-card p, .info-card li {
+        font-size: 0.85rem;
+        color: #4b5563;
+        line-height: 1.6;
+        margin: 0;
+    }
+    .info-card ul { padding-left: 1.2rem; margin: 0.3rem 0 0 0; }
+    .info-card .tag {
+        display: inline-block;
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 2px 10px;
+        font-size: 0.78rem;
+        color: #374151;
+        font-weight: 500;
+        margin: 2px 4px 2px 0;
+    }
+    .info-card .warn {
+        background: #fef3c7;
+        border: 1px solid #fcd34d;
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+        font-size: 0.82rem;
+        color: #92400e;
+        margin-top: 0.6rem;
+    }
+
     .footer {
         text-align: center;
         padding: 2rem 0 1rem;
@@ -397,6 +438,84 @@ if not analyze_btn:
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    tab_tech, tab_usage, tab_limits = st.tabs(["Tech Stack", "How to Use", "Limitations"])
+
+    with tab_tech:
+        col_a, col_b = st.columns(2)
+        with col_a:
+            st.markdown("""
+            <div class="info-card">
+                <h4>AI Framework</h4>
+                <p>
+                    <span class="tag">CrewAI</span> orchestrates two specialized AI agents that collaborate on each analysis.
+                    The <b>Analyst Agent</b> researches news and financial data, then the <b>Writer Agent</b> synthesizes
+                    everything into a readable report.
+                </p>
+            </div>
+            <div class="info-card">
+                <h4>Language Model</h4>
+                <p>
+                    <span class="tag">Llama 3.3 70B</span> via <span class="tag">Groq</span><br>
+                    Meta's Llama 3.3 70B model running on Groq's ultra-fast LPU inference engine.
+                    Delivers near-instant responses for complex reasoning tasks.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+        with col_b:
+            st.markdown("""
+            <div class="info-card">
+                <h4>Data Sources</h4>
+                <p>
+                    <span class="tag">SerpAPI</span> Google News search for latest headlines and sentiment<br>
+                    <span class="tag">Yahoo Finance</span> Real-time stock prices, 30-day history, highs, and lows
+                </p>
+            </div>
+            <div class="info-card">
+                <h4>Frontend & Deployment</h4>
+                <p>
+                    <span class="tag">Streamlit</span> <span class="tag">Python</span> <span class="tag">Streamlit Cloud</span><br>
+                    Built with Streamlit for rapid prototyping. Deployed on Streamlit Community Cloud (free tier).
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+    with tab_usage:
+        st.markdown("""
+        <div class="info-card">
+            <h4>Getting Started</h4>
+            <ul>
+                <li><b>Hosted keys available?</b> &mdash; Just enter a stock ticker (e.g. AAPL, TSLA, GOOGL) and click <b>Analyze Stock</b>. No setup needed.</li>
+                <li><b>Using your own keys?</b> &mdash; Toggle "Use my own API keys" in the sidebar, paste your Groq and SerpAPI keys, then analyze.</li>
+                <li>The analysis takes 15&ndash;30 seconds as two AI agents research and write your report.</li>
+                <li>Once complete, read the report on-screen or click <b>Download Report</b> to save it as a text file.</li>
+            </ul>
+        </div>
+        <div class="info-card">
+            <h4>Getting API Keys (Free)</h4>
+            <ul>
+                <li><b>Groq</b> &mdash; Sign up at <a href="https://console.groq.com/keys" target="_blank">console.groq.com</a> and create an API key. Free tier available.</li>
+                <li><b>SerpAPI</b> &mdash; Sign up at <a href="https://serpapi.com/" target="_blank">serpapi.com</a>. Free plan includes 100 searches/month.</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with tab_limits:
+        st.markdown("""
+        <div class="info-card">
+            <h4>Free Tier Limitations</h4>
+            <div class="warn">
+                This app runs entirely on free-tier services. You may occasionally hit rate limits &mdash; just wait a few seconds and try again.
+            </div>
+            <ul>
+                <li><b>Groq Free Tier</b> &mdash; Limited to ~30 requests/minute and 12,000 tokens/minute (TPM). If you see a "rate limit" error, wait 10 seconds and retry. Heavy usage may require upgrading to Groq's Dev Tier.</li>
+                <li><b>SerpAPI Free Tier</b> &mdash; 100 searches per month. Each analysis uses 1&ndash;2 searches.</li>
+                <li><b>Hosted Keys</b> &mdash; Limited to a set number of analyses per session to protect shared quotas. Bring your own keys for unlimited use.</li>
+                <li><b>Model</b> &mdash; Llama 3.3 70B is powerful but may occasionally produce inaccurate financial data or outdated information. Always verify important decisions with official sources.</li>
+                <li><b>Streamlit Cloud</b> &mdash; App may sleep after inactivity. First load can take 30&ndash;60 seconds as it wakes up.</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
 
 if analyze_btn:
     if not ticker:
