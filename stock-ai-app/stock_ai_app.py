@@ -232,6 +232,8 @@ def get_stock_snapshot(ticker_symbol: str):
         current = hist["Close"].iloc[-1]
         prev = hist["Close"].iloc[0]
         change_pct = (current - prev) / prev * 100
+        w52_high = info.get("fiftyTwoWeekHigh")
+        w52_low = info.get("fiftyTwoWeekLow")
         return {
             "price": current,
             "change_pct": change_pct,
@@ -239,6 +241,12 @@ def get_stock_snapshot(ticker_symbol: str):
             "low": hist["Low"].min(),
             "volume": int(hist["Volume"].iloc[-1]),
             "name": info.get("shortName", ticker_symbol),
+            "pe": info.get("trailingPE"),
+            "fwd_pe": info.get("forwardPE"),
+            "w52_high": w52_high,
+            "w52_low": w52_low,
+            "analyst_target": info.get("targetMeanPrice"),
+            "recommendation": info.get("recommendationKey"),
         }
     except Exception:
         return None
@@ -362,7 +370,7 @@ class StockSearchTool(BaseTool):
 
 class YahooFinanceTool(BaseTool):
     name: str = "YahooFinanceData"
-    description: str = "Fetch stock data from Yahoo Finance using yfinance library."
+    description: str = "Fetch comprehensive stock data from Yahoo Finance including price, trends, and key metrics."
     args_schema: Type[BaseModel] = YahooFinanceInput
 
     def _run(self, ticker: str) -> str:
@@ -371,10 +379,68 @@ class YahooFinanceTool(BaseTool):
             hist = stock.history(period="1mo")
             if hist.empty:
                 return "No data found for the given ticker symbol."
-            latest = hist.tail(5)
-            current = latest["Close"].iloc[-1]
-            change = (latest["Close"].iloc[-1] - latest["Close"].iloc[0]) / latest["Close"].iloc[0] * 100
-            return f"Stock: {ticker}\nPrice: ${current:.2f}\nChange (1 month): {change:.2f}%\nHigh: ${latest['High'].max():.2f}\nLow: ${latest['Low'].min():.2f}"
+            info = stock.info
+            current = hist["Close"].iloc[-1]
+            month_start = hist["Close"].iloc[0]
+            change_pct = (current - month_start) / month_start * 100
+            high_30d = hist["High"].max()
+            low_30d = hist["Low"].min()
+            range_30d = high_30d - low_30d
+            position_in_range = ((current - low_30d) / range_30d * 100) if range_30d > 0 else 50
+            avg_volume = int(hist["Volume"].mean())
+
+            lines = [
+                f"Stock: {ticker}",
+                f"Company: {info.get('shortName', 'N/A')}",
+                f"Sector: {info.get('sector', 'N/A')}",
+                f"Current Price: ${current:.2f}",
+                f"30-Day Change: {change_pct:+.2f}%",
+                f"30-Day High: ${high_30d:.2f}",
+                f"30-Day Low: ${low_30d:.2f}",
+                f"Position in 30-Day Range: {position_in_range:.0f}% (0%=at low, 100%=at high)",
+                f"Avg Daily Volume (30d): {avg_volume:,}",
+            ]
+
+            week52_high = info.get("fiftyTwoWeekHigh")
+            week52_low = info.get("fiftyTwoWeekLow")
+            if week52_high and week52_low:
+                lines.append(f"52-Week High: ${week52_high:.2f}")
+                lines.append(f"52-Week Low: ${week52_low:.2f}")
+                w52_range = week52_high - week52_low
+                if w52_range > 0:
+                    pos_52w = (current - week52_low) / w52_range * 100
+                    lines.append(f"Position in 52-Week Range: {pos_52w:.0f}%")
+
+            pe = info.get("trailingPE")
+            fwd_pe = info.get("forwardPE")
+            if pe:
+                lines.append(f"P/E Ratio (Trailing): {pe:.1f}")
+            if fwd_pe:
+                lines.append(f"P/E Ratio (Forward): {fwd_pe:.1f}")
+
+            mkt_cap = info.get("marketCap")
+            if mkt_cap:
+                if mkt_cap >= 1e12:
+                    lines.append(f"Market Cap: ${mkt_cap/1e12:.2f}T")
+                elif mkt_cap >= 1e9:
+                    lines.append(f"Market Cap: ${mkt_cap/1e9:.2f}B")
+                else:
+                    lines.append(f"Market Cap: ${mkt_cap/1e6:.0f}M")
+
+            div_yield = info.get("dividendYield")
+            if div_yield and div_yield > 0:
+                lines.append(f"Dividend Yield: {div_yield*100:.2f}%")
+
+            target_mean = info.get("targetMeanPrice")
+            if target_mean:
+                upside = (target_mean - current) / current * 100
+                lines.append(f"Analyst Mean Target: ${target_mean:.2f} ({upside:+.1f}% from current)")
+
+            rec = info.get("recommendationKey")
+            if rec:
+                lines.append(f"Analyst Consensus: {rec.upper()}")
+
+            return "\n".join(lines)
         except Exception as e:
             return f"Error fetching stock data: {str(e)}"
 
@@ -388,19 +454,20 @@ def get_agents(_llm):
     analyst = Agent(
         role="Senior Equity Research Analyst",
         goal=(
-            "Conduct thorough research on the given stock by gathering the latest news, "
-            "market sentiment, and financial data. Identify key catalysts, risks, recent "
-            "earnings or guidance changes, analyst ratings, and sector trends. Provide a "
-            "data-driven assessment including current price action, support/resistance levels, "
-            "and any notable institutional activity."
+            "Conduct thorough research on the given stock. Gather: "
+            "(1) latest news — earnings, guidance, analyst upgrades/downgrades, major business events, "
+            "(2) financial data — current price, 30-day trend, highs, lows, volume, "
+            "(3) valuation context — where the price sits relative to its recent range and "
+            "whether it appears undervalued, fairly valued, or overvalued based on the data, "
+            "(4) market sentiment — bullish, bearish, or neutral with evidence. "
+            "Always cite specific numbers, dates, and sources."
         ),
         backstory=(
-            "You are a senior equity research analyst at a top investment firm with 15 years "
-            "of experience covering multiple sectors. You are known for your rigorous, "
-            "data-driven approach — you never speculate without evidence. You always cite "
-            "specific data points (prices, percentages, dates) and distinguish between "
-            "confirmed facts and market speculation. You focus on what matters most to "
-            "an investor making a buy/sell/hold decision."
+            "You are a senior equity research analyst with 15 years of experience. "
+            "You take a data-driven approach — every claim is backed by a specific number or source. "
+            "You evaluate stocks the way a portfolio manager would: price action, momentum, "
+            "news catalysts, and relative valuation. You clearly separate confirmed facts "
+            "from speculation. You focus only on what helps an investor decide to buy, hold, or sell."
         ),
         llm=_llm,
         tools=[stock_search_tool, yahoo_finance_tool],
@@ -408,18 +475,18 @@ def get_agents(_llm):
     writer = Agent(
         role="Investment Report Writer",
         goal=(
-            "Transform the analyst's raw research into a polished, actionable investment "
-            "report. The report MUST include: (1) a clear BUY / HOLD / SELL recommendation, "
-            "(2) an estimated price target range for the next 3-6 months, (3) key reasons "
-            "supporting the recommendation, and (4) the top risks that could invalidate it."
+            "Write a clear, concise investment report that a non-expert investor can act on. "
+            "The report must be simple to read, avoid jargon, and end with a clear verdict. "
+            "Include: valuation assessment (undervalued / fairly valued / overvalued), "
+            "BUY / HOLD / SELL recommendation, price target range, and key risks. "
+            "Keep it focused — no fluff, no filler."
         ),
         backstory=(
-            "You are an experienced investment report writer who has written thousands of "
-            "equity research reports for retail and institutional investors. You write in a "
-            "clear, professional style that is accessible to non-experts. You always structure "
-            "reports with clear sections, use bullet points for readability, and never bury "
-            "the recommendation — it goes right at the top. You understand that investors "
-            "want actionable advice, not vague commentary."
+            "You are an investment report writer known for making complex analysis simple. "
+            "You write for everyday investors, not Wall Street insiders. Your reports are "
+            "structured, scannable, and always end with a decisive verdict. You use bullet "
+            "points, bold labels, and short paragraphs. You never hedge with vague language — "
+            "if the data says buy, you say buy. If it says sell, you say sell."
         ),
         llm=_llm,
     )
@@ -552,6 +619,26 @@ if analyze_btn:
         if snapshot:
             change_class = "positive" if snapshot["change_pct"] >= 0 else "negative"
             change_sign = "+" if snapshot["change_pct"] >= 0 else ""
+
+            pe_html = ""
+            if snapshot.get("pe"):
+                pe_html = f'<div class="metric-card"><div class="label">P/E Ratio</div><div class="value">{snapshot["pe"]:.1f}</div>'
+                if snapshot.get("fwd_pe"):
+                    pe_html += f'<div class="sub">Fwd: {snapshot["fwd_pe"]:.1f}</div>'
+                pe_html += '</div>'
+
+            w52_html = ""
+            if snapshot.get("w52_high") and snapshot.get("w52_low"):
+                w52_html = f'<div class="metric-card"><div class="label">52-Week Range</div><div class="value" style="font-size:1rem">\\${snapshot["w52_low"]:.0f} - \\${snapshot["w52_high"]:.0f}</div></div>'
+
+            target_html = ""
+            if snapshot.get("analyst_target"):
+                upside = (snapshot["analyst_target"] - snapshot["price"]) / snapshot["price"] * 100
+                upside_class = "positive" if upside >= 0 else "negative"
+                upside_sign = "+" if upside >= 0 else ""
+                rec_label = (snapshot.get("recommendation") or "").upper()
+                target_html = f'<div class="metric-card"><div class="label">Analyst Target</div><div class="value">\\${snapshot["analyst_target"]:.2f}</div><div class="sub {upside_class}">{upside_sign}{upside:.1f}% &bull; {rec_label}</div></div>'
+
             st.markdown(f"""
             <div class="metric-row">
                 <div class="metric-card">
@@ -567,80 +654,88 @@ if analyze_btn:
                     <div class="label">30-Day Change</div>
                     <div class="value {change_class}">{change_sign}{snapshot["change_pct"]:.1f}%</div>
                 </div>
-                <div class="metric-card">
-                    <div class="label">30-Day High</div>
-                    <div class="value">\\${snapshot["high"]:.2f}</div>
-                </div>
-                <div class="metric-card">
-                    <div class="label">30-Day Low</div>
-                    <div class="value">\\${snapshot["low"]:.2f}</div>
-                </div>
+                {pe_html}
+                {w52_html}
+                {target_html}
             </div>
             """, unsafe_allow_html=True)
 
         status = st.status(f"Analyzing **{ticker}**...", expanded=True)
         with status:
             try:
-                st.markdown('<div class="agent-step"><span class="icon">1.</span><span class="text">Analyst: Researching latest news and market sentiment...</span></div>', unsafe_allow_html=True)
+                st.markdown('<div class="agent-step"><span class="icon">1.</span><span class="text">Analyst: Researching news, earnings, and market sentiment...</span></div>', unsafe_allow_html=True)
                 news_task = Task(
                     description=(
-                        f"Research the latest news and market sentiment for {ticker}. "
-                        f"Search for: (1) recent earnings reports or guidance updates, "
-                        f"(2) analyst upgrades/downgrades and price target changes, "
-                        f"(3) major business developments (partnerships, product launches, lawsuits, leadership changes), "
-                        f"(4) sector/industry trends affecting {ticker}. "
-                        f"For each finding, note the source and date. Summarize the overall market sentiment "
-                        f"as bullish, bearish, or neutral with supporting evidence."
+                        f"Research the latest news and market sentiment for {ticker}. Find: "
+                        f"(1) most recent earnings results — did the company beat or miss estimates? "
+                        f"Any guidance changes? "
+                        f"(2) analyst actions — any recent upgrades, downgrades, or price target changes? "
+                        f"What is the consensus rating? "
+                        f"(3) major business events — new products, partnerships, acquisitions, "
+                        f"lawsuits, leadership changes, insider buying/selling "
+                        f"(4) sector trends — is the industry doing well or struggling? "
+                        f"Rate the overall sentiment as BULLISH, BEARISH, or NEUTRAL with evidence."
                     ),
                     expected_output=(
-                        "A structured summary with: key news headlines with dates, "
-                        "analyst sentiment overview, major catalysts (positive and negative), "
-                        "and an overall sentiment assessment (bullish/bearish/neutral)."
+                        "Structured findings: recent earnings summary (beat/miss/guidance), "
+                        "analyst consensus and notable rating changes, key business developments, "
+                        "sector outlook, and overall sentiment verdict (BULLISH/BEARISH/NEUTRAL)."
                     ),
                     agent=analyst_agent,
                 )
 
-                st.markdown('<div class="agent-step"><span class="icon">2.</span><span class="text">Analyst: Analyzing financial data and price action...</span></div>', unsafe_allow_html=True)
+                st.markdown('<div class="agent-step"><span class="icon">2.</span><span class="text">Analyst: Analyzing price action and valuation...</span></div>', unsafe_allow_html=True)
                 price_task = Task(
                     description=(
-                        f"Fetch and analyze the financial data for {ticker}. Evaluate: "
-                        f"(1) current stock price and 30-day price trend (up/down/sideways), "
-                        f"(2) 30-day high and low to identify support and resistance levels, "
-                        f"(3) recent price volatility and trading volume patterns, "
-                        f"(4) how the current price compares to the 30-day range. "
-                        f"Based on the price action and the news findings, assess whether "
-                        f"the stock appears undervalued, fairly valued, or overvalued at current levels."
+                        f"Fetch financial data for {ticker} and perform a valuation assessment. Analyze: "
+                        f"(1) current price vs 30-day high/low — is it near the top or bottom of its range? "
+                        f"(2) 30-day price trend — uptrend, downtrend, or sideways? "
+                        f"(3) momentum — is buying pressure increasing or decreasing? "
+                        f"(4) support level (recent low where price bounced) and resistance level "
+                        f"(recent high where price stalled) "
+                        f"(5) valuation verdict — based on where the price sits in its range, "
+                        f"the trend direction, and the news sentiment from the previous task, "
+                        f"classify the stock as: UNDERVALUED (trading below fair value, potential upside), "
+                        f"FAIRLY VALUED (price reflects current fundamentals), or "
+                        f"OVERVALUED (price has run ahead of fundamentals, limited upside or downside risk). "
+                        f"Explain your reasoning in 2-3 sentences."
                     ),
                     expected_output=(
-                        "A financial data summary with: current price, 30-day performance, "
-                        "support/resistance levels, volatility assessment, and a valuation "
-                        "opinion (undervalued/fair/overvalued) with reasoning."
+                        "Financial summary: current price, 30-day change %, trend direction, "
+                        "support and resistance levels, momentum assessment, and a clear "
+                        "valuation verdict (UNDERVALUED / FAIRLY VALUED / OVERVALUED) with reasoning."
                     ),
                     agent=analyst_agent,
                 )
 
-                st.markdown('<div class="agent-step"><span class="icon">3.</span><span class="text">Writer: Crafting investment report with recommendation...</span></div>', unsafe_allow_html=True)
+                st.markdown('<div class="agent-step"><span class="icon">3.</span><span class="text">Writer: Composing investment report with verdict...</span></div>', unsafe_allow_html=True)
                 report_task = Task(
                     description=(
-                        f"Write a professional investment analysis report for {ticker} using "
-                        f"the analyst's research. The report MUST follow this structure:\n\n"
-                        f"1. **Recommendation** — Start with a clear BUY, HOLD, or SELL recommendation in bold\n"
-                        f"2. **Price Target** — Provide an estimated price range for the next 3-6 months "
-                        f"(e.g., '$150 - $175') based on the analysis\n"
-                        f"3. **Summary** — 2-3 sentence overview of why this recommendation\n"
-                        f"4. **Key Highlights** — Bullet points of the most important findings "
-                        f"(earnings, news, analyst views)\n"
-                        f"5. **Financial Snapshot** — Current price, 30-day trend, support/resistance levels\n"
-                        f"6. **Bull Case** — Top 2-3 reasons the stock could go higher\n"
-                        f"7. **Bear Case / Risks** — Top 2-3 risks or reasons it could go lower\n"
-                        f"8. **Conclusion** — Final verdict with the price target range restated\n\n"
-                        f"Keep the report under 400 words. Use specific numbers and data points. "
-                        f"Write for an investor who wants actionable advice, not vague commentary."
+                        f"Write a clean, easy-to-read investment report for {ticker}. "
+                        f"Use the analyst's research and follow this EXACT structure:\n\n"
+                        f"**Recommendation: BUY / HOLD / SELL** (pick one, bold it)\n"
+                        f"**Valuation: UNDERVALUED / FAIRLY VALUED / OVERVALUED** (from analyst's assessment)\n"
+                        f"**Price Target: $X - $Y** (estimated 3-6 month range)\n\n"
+                        f"Then these sections:\n"
+                        f"- **Why this rating** — 2-3 sentences explaining the recommendation\n"
+                        f"- **What's happening** — 3-4 bullet points of the most important recent news, "
+                        f"earnings, or analyst actions. Use specific numbers and dates.\n"
+                        f"- **Price action** — Current price, 30-day trend, support/resistance levels, "
+                        f"and where it sits in its range\n"
+                        f"- **Reasons to be bullish** — 2-3 specific reasons the stock could go higher\n"
+                        f"- **Risks to watch** — 2-3 specific risks that could hurt the stock\n"
+                        f"- **The verdict** — End with a clear, decisive 2-3 sentence conclusion. "
+                        f"Restate the recommendation, valuation, and price target. "
+                        f"Tell the investor exactly what you would do.\n\n"
+                        f"IMPORTANT: Keep it under 400 words. Use simple language — write for someone "
+                        f"who reads financial news but is not a professional trader. Every sentence "
+                        f"should help the reader make a decision. No filler."
                     ),
                     expected_output=(
-                        "A structured investment report with: clear BUY/HOLD/SELL recommendation, "
-                        "3-6 month price target range, key highlights, bull case, bear case/risks, "
-                        "and a conclusion. Professional tone, under 400 words."
+                        "A structured report with: recommendation (BUY/HOLD/SELL), "
+                        "valuation (undervalued/fairly valued/overvalued), price target range, "
+                        "key news highlights, price action summary, bull case, risks, "
+                        "and a decisive verdict. Simple language, under 400 words."
                     ),
                     agent=writer_agent,
                 )
