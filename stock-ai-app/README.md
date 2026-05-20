@@ -1,6 +1,6 @@
 # Stock AI Analyst
 
-A multi-agent stock analysis app that generates actionable investment reports with **BUY / HOLD / SELL recommendations** and **price target ranges**. Enter any stock ticker and get a professional-grade analysis powered by two AI agents working together.
+A multi-agent stock analysis app that generates actionable investment reports with **BUY / HOLD / SELL recommendations**, **valuation assessments** (undervalued / fairly valued / overvalued), and **price target ranges**. Enter any stock ticker and get a professional-grade analysis powered by two AI agents working together.
 
 **[Try the Live App](https://stock-analysis-ai-web-app.streamlit.app/)**
 
@@ -8,51 +8,55 @@ A multi-agent stock analysis app that generates actionable investment reports wi
 
 The app uses **CrewAI** to orchestrate two AI agents that collaborate on each analysis:
 
-1. **Senior Equity Research Analyst** — Researches the latest news, earnings reports, analyst ratings, sector trends, and financial data. Identifies key catalysts, support/resistance levels, and assesses market sentiment (bullish/bearish/neutral).
-2. **Investment Report Writer** — Transforms the analyst's raw research into a structured report with a clear BUY/HOLD/SELL recommendation and 3–6 month price target range.
+1. **Senior Equity Research Analyst** — Researches latest news, earnings reports, analyst ratings, sector trends, and financial data (P/E ratio, 52-week range, analyst targets). Identifies catalysts, support/resistance levels, assesses market sentiment, and determines if the stock is undervalued, fairly valued, or overvalued.
+2. **Investment Report Writer** — Transforms the analyst's research into a structured, easy-to-read report with a clear BUY/HOLD/SELL recommendation, valuation assessment, and 3–6 month price target range. Ends with a decisive verdict.
 
 ```
 User enters ticker (e.g. AAPL)
         |
         v
-+---------------------------------+
-|  Senior Analyst Agent           |
-|  - Latest news & earnings       |--> SerpAPI (Google News)
-|  - Analyst ratings & catalysts  |
-|  - Price action & valuation     |--> Yahoo Finance (1-month data)
-|  - Sentiment: bullish/bearish   |
-+---------------+-----------------+
-                |
-                v
-+---------------------------------+
-|  Investment Writer Agent        |
-|  - BUY / HOLD / SELL verdict    |
-|  - 3-6 month price target range |
-|  - Bull case & bear case/risks  |--> Downloadable .txt report
-|  - Actionable conclusion        |
-+---------------------------------+
++-----------------------------------------+
+|  Senior Analyst Agent                   |
+|  - News, earnings, analyst ratings      |--> SerpAPI (Google News)
+|  - Price, P/E, 52-week range, targets  |--> Yahoo Finance
+|  - Sentiment: bullish / bearish         |
+|  - Valuation: under / fair / overvalued |
++-------------------+---------------------+
+                    |
+                    v
++-----------------------------------------+
+|  Investment Writer Agent                |
+|  - BUY / HOLD / SELL recommendation     |
+|  - Valuation assessment                 |
+|  - 3-6 month price target range         |
+|  - Bull case & risks                    |--> Downloadable report
+|  - Decisive verdict                     |
++-----------------------------------------+
 ```
 
 ## Sample Report Structure
 
 Every analysis follows this format:
 
-1. **Recommendation** — Clear BUY, HOLD, or SELL verdict
-2. **Price Target** — Estimated range for the next 3–6 months
-3. **Summary** — 2–3 sentence overview
-4. **Key Highlights** — Earnings, news, analyst views
-5. **Financial Snapshot** — Current price, 30-day trend, support/resistance
-6. **Bull Case** — Top reasons the stock could go higher
-7. **Bear Case / Risks** — Top risks that could push it lower
-8. **Conclusion** — Final verdict with price target restated
+1. **Recommendation** — Clear BUY, HOLD, or SELL
+2. **Valuation** — Undervalued, Fairly Valued, or Overvalued
+3. **Price Target** — Estimated range for the next 3–6 months
+4. **Why This Rating** — 2–3 sentence rationale
+5. **What's Happening** — Key news, earnings, analyst actions with dates
+6. **Price Action** — Current price, 30-day trend, support/resistance, P/E context
+7. **Reasons to Be Bullish** — Top reasons the stock could go higher
+8. **Risks to Watch** — Top risks that could hurt the stock
+9. **The Verdict** — Decisive conclusion restating recommendation, valuation, and price target
 
 ## Features
 
-- **Actionable Reports** — Every analysis includes a BUY/HOLD/SELL recommendation and price target range
+- **Actionable Reports** — Every analysis includes a BUY/HOLD/SELL recommendation, valuation assessment, and price target range
+- **Valuation Analysis** — Determines if a stock is undervalued, fairly valued, or overvalued based on price action, P/E ratios, 52-week range, and analyst consensus
+- **Rich Data** — P/E ratio, forward P/E, 52-week range, analyst price targets, market cap, dividend yield, and momentum signals
 - **Multi-Agent AI** — Two specialized agents (Analyst + Writer) collaborate via CrewAI
 - **Real-Time Data** — Latest stock prices from Yahoo Finance and news from Google via SerpAPI
 - **LLM Powered** — Uses Groq's Llama 3.3 70B model for fast inference
-- **Modern UI** — Gradient hero banner, live stock metric cards, step-by-step agent progress tracking
+- **Modern UI** — Gradient hero banner, live stock metric cards (price, P/E, 52-week range, analyst target), step-by-step agent progress
 - **Info Tabs** — Built-in Tech Stack, How to Use, and Limitations tabs
 - **Disclaimer** — Expandable disclaimer after every report (not financial advice, AI limitations, data freshness)
 - **Downloadable Reports** — Export analysis as a text file
