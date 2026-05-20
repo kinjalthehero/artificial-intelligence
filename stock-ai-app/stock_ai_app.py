@@ -386,16 +386,41 @@ yahoo_finance_tool = YahooFinanceTool()
 @st.cache_resource
 def get_agents(_llm):
     analyst = Agent(
-        role="Stock Analyst Agent",
-        goal="Analyze the stock based on the latest news and financial data, and provide insights and recommendations.",
-        backstory="You are a stock analyst with expertise in financial markets and news analysis.",
+        role="Senior Equity Research Analyst",
+        goal=(
+            "Conduct thorough research on the given stock by gathering the latest news, "
+            "market sentiment, and financial data. Identify key catalysts, risks, recent "
+            "earnings or guidance changes, analyst ratings, and sector trends. Provide a "
+            "data-driven assessment including current price action, support/resistance levels, "
+            "and any notable institutional activity."
+        ),
+        backstory=(
+            "You are a senior equity research analyst at a top investment firm with 15 years "
+            "of experience covering multiple sectors. You are known for your rigorous, "
+            "data-driven approach — you never speculate without evidence. You always cite "
+            "specific data points (prices, percentages, dates) and distinguish between "
+            "confirmed facts and market speculation. You focus on what matters most to "
+            "an investor making a buy/sell/hold decision."
+        ),
         llm=_llm,
         tools=[stock_search_tool, yahoo_finance_tool],
     )
     writer = Agent(
-        role="Stock Report Writer Agent",
-        goal="Write a comprehensive stock analysis report based on the insights provided by the analyst agent.",
-        backstory="You are a skilled writer with expertise in financial writing.",
+        role="Investment Report Writer",
+        goal=(
+            "Transform the analyst's raw research into a polished, actionable investment "
+            "report. The report MUST include: (1) a clear BUY / HOLD / SELL recommendation, "
+            "(2) an estimated price target range for the next 3-6 months, (3) key reasons "
+            "supporting the recommendation, and (4) the top risks that could invalidate it."
+        ),
+        backstory=(
+            "You are an experienced investment report writer who has written thousands of "
+            "equity research reports for retail and institutional investors. You write in a "
+            "clear, professional style that is accessible to non-experts. You always structure "
+            "reports with clear sections, use bullet points for readability, and never bury "
+            "the recommendation — it goes right at the top. You understand that investors "
+            "want actionable advice, not vague commentary."
+        ),
         llm=_llm,
     )
     return analyst, writer
@@ -556,24 +581,67 @@ if analyze_btn:
         status = st.status(f"Analyzing **{ticker}**...", expanded=True)
         with status:
             try:
-                st.markdown('<div class="agent-step"><span class="icon">1.</span><span class="text">Analyst Agent: Searching latest news...</span></div>', unsafe_allow_html=True)
+                st.markdown('<div class="agent-step"><span class="icon">1.</span><span class="text">Analyst: Researching latest news and market sentiment...</span></div>', unsafe_allow_html=True)
                 news_task = Task(
-                    description=f"Search for the latest news about {ticker} and provide insights.",
-                    expected_output="Insights based on the latest news about the stock.",
+                    description=(
+                        f"Research the latest news and market sentiment for {ticker}. "
+                        f"Search for: (1) recent earnings reports or guidance updates, "
+                        f"(2) analyst upgrades/downgrades and price target changes, "
+                        f"(3) major business developments (partnerships, product launches, lawsuits, leadership changes), "
+                        f"(4) sector/industry trends affecting {ticker}. "
+                        f"For each finding, note the source and date. Summarize the overall market sentiment "
+                        f"as bullish, bearish, or neutral with supporting evidence."
+                    ),
+                    expected_output=(
+                        "A structured summary with: key news headlines with dates, "
+                        "analyst sentiment overview, major catalysts (positive and negative), "
+                        "and an overall sentiment assessment (bullish/bearish/neutral)."
+                    ),
                     agent=analyst_agent,
                 )
 
-                st.markdown('<div class="agent-step"><span class="icon">2.</span><span class="text">Analyst Agent: Fetching financial data...</span></div>', unsafe_allow_html=True)
+                st.markdown('<div class="agent-step"><span class="icon">2.</span><span class="text">Analyst: Analyzing financial data and price action...</span></div>', unsafe_allow_html=True)
                 price_task = Task(
-                    description=f"Fetch the latest financial data for {ticker} and provide insights.",
-                    expected_output="Insights based on the latest financial data of the stock.",
+                    description=(
+                        f"Fetch and analyze the financial data for {ticker}. Evaluate: "
+                        f"(1) current stock price and 30-day price trend (up/down/sideways), "
+                        f"(2) 30-day high and low to identify support and resistance levels, "
+                        f"(3) recent price volatility and trading volume patterns, "
+                        f"(4) how the current price compares to the 30-day range. "
+                        f"Based on the price action and the news findings, assess whether "
+                        f"the stock appears undervalued, fairly valued, or overvalued at current levels."
+                    ),
+                    expected_output=(
+                        "A financial data summary with: current price, 30-day performance, "
+                        "support/resistance levels, volatility assessment, and a valuation "
+                        "opinion (undervalued/fair/overvalued) with reasoning."
+                    ),
                     agent=analyst_agent,
                 )
 
-                st.markdown('<div class="agent-step"><span class="icon">3.</span><span class="text">Writer Agent: Composing analysis report...</span></div>', unsafe_allow_html=True)
+                st.markdown('<div class="agent-step"><span class="icon">3.</span><span class="text">Writer: Crafting investment report with recommendation...</span></div>', unsafe_allow_html=True)
                 report_task = Task(
-                    description=f"Write a comprehensive stock analysis report for {ticker} based on the insights from the news and financial data. Keep under 300 words.",
-                    expected_output="A comprehensive stock analysis report.",
+                    description=(
+                        f"Write a professional investment analysis report for {ticker} using "
+                        f"the analyst's research. The report MUST follow this structure:\n\n"
+                        f"1. **Recommendation** — Start with a clear BUY, HOLD, or SELL recommendation in bold\n"
+                        f"2. **Price Target** — Provide an estimated price range for the next 3-6 months "
+                        f"(e.g., '$150 - $175') based on the analysis\n"
+                        f"3. **Summary** — 2-3 sentence overview of why this recommendation\n"
+                        f"4. **Key Highlights** — Bullet points of the most important findings "
+                        f"(earnings, news, analyst views)\n"
+                        f"5. **Financial Snapshot** — Current price, 30-day trend, support/resistance levels\n"
+                        f"6. **Bull Case** — Top 2-3 reasons the stock could go higher\n"
+                        f"7. **Bear Case / Risks** — Top 2-3 risks or reasons it could go lower\n"
+                        f"8. **Conclusion** — Final verdict with the price target range restated\n\n"
+                        f"Keep the report under 400 words. Use specific numbers and data points. "
+                        f"Write for an investor who wants actionable advice, not vague commentary."
+                    ),
+                    expected_output=(
+                        "A structured investment report with: clear BUY/HOLD/SELL recommendation, "
+                        "3-6 month price target range, key highlights, bull case, bear case/risks, "
+                        "and a conclusion. Professional tone, under 400 words."
+                    ),
                     agent=writer_agent,
                 )
 
@@ -613,6 +681,31 @@ if analyze_btn:
                 mime="text/plain",
                 use_container_width=True,
             )
+
+        with st.expander("Disclaimer & Limitations", expanded=False):
+            st.markdown("""
+            <div class="info-card" style="margin:0">
+                <div class="warn" style="margin-bottom:0.8rem">
+                    <b>Not Financial Advice</b> &mdash; This report is generated by AI for informational and educational purposes only.
+                    It does not constitute financial advice, investment recommendations, or an offer to buy or sell securities.
+                </div>
+                <h4>Important Limitations</h4>
+                <ul>
+                    <li><b>AI-Generated Content</b> &mdash; This analysis is produced by Llama 3.3 70B, a large language model. It may contain inaccuracies, hallucinated data, or outdated information. Always verify key data points with official sources (SEC filings, company earnings reports, financial news).</li>
+                    <li><b>Price Targets Are Estimates</b> &mdash; Any price targets or ranges mentioned are AI-generated projections, not guarantees. Stock prices are influenced by countless factors that no model can fully predict.</li>
+                    <li><b>Data Freshness</b> &mdash; News is sourced from Google News via SerpAPI and may not include the very latest developments. Financial data comes from Yahoo Finance with possible delays.</li>
+                    <li><b>No Personalization</b> &mdash; This report does not consider your financial situation, risk tolerance, investment goals, or tax implications. Consult a licensed financial advisor for personalized advice.</li>
+                    <li><b>Past Performance</b> &mdash; Historical price data and trends do not guarantee future results.</li>
+                </ul>
+                <h4>About This App</h4>
+                <ul>
+                    <li><b>Model:</b> Meta Llama 3.3 70B Versatile via Groq LPU inference</li>
+                    <li><b>Agents:</b> CrewAI multi-agent framework (Analyst + Writer)</li>
+                    <li><b>Data:</b> SerpAPI (Google News), Yahoo Finance (yfinance)</li>
+                    <li><b>Infrastructure:</b> Streamlit Cloud (free tier)</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
 
 st.markdown("""
 <div class="footer">
