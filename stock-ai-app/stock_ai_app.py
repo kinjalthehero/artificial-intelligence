@@ -225,13 +225,40 @@ def consume_hosted_quota(max_requests: int) -> bool:
 def get_stock_snapshot(ticker_symbol: str):
     try:
         stock = yf.Ticker(ticker_symbol)
-        hist = stock.history(period="1mo")
-        if hist.empty:
-            return None
-        info = stock.info
+        info = stock.info or {}
+
+        hist = None
+        for period in ("1mo", "5d", "3mo"):
+            try:
+                h = stock.history(period=period, repair=True)
+                if not h.empty:
+                    hist = h
+                    break
+            except Exception:
+                continue
+
+        if hist is None or hist.empty:
+            current = info.get("currentPrice") or info.get("regularMarketPrice") or info.get("previousClose")
+            if not current:
+                return None
+            return {
+                "price": current,
+                "change_pct": 0.0,
+                "high": current,
+                "low": current,
+                "volume": info.get("volume", 0),
+                "name": info.get("shortName", ticker_symbol),
+                "pe": info.get("trailingPE"),
+                "fwd_pe": info.get("forwardPE"),
+                "w52_high": info.get("fiftyTwoWeekHigh"),
+                "w52_low": info.get("fiftyTwoWeekLow"),
+                "analyst_target": info.get("targetMeanPrice"),
+                "recommendation": info.get("recommendationKey"),
+            }
+
         current = hist["Close"].iloc[-1]
         prev = hist["Close"].iloc[0]
-        change_pct = (current - prev) / prev * 100
+        change_pct = (current - prev) / prev * 100 if prev != 0 else 0.0
         w52_high = info.get("fiftyTwoWeekHigh")
         w52_low = info.get("fiftyTwoWeekLow")
         return {
@@ -376,30 +403,50 @@ class YahooFinanceTool(BaseTool):
     def _run(self, ticker: str) -> str:
         try:
             stock = yf.Ticker(ticker)
-            hist = stock.history(period="1mo")
-            if hist.empty:
-                return "No data found for the given ticker symbol."
             info = stock.info
-            current = hist["Close"].iloc[-1]
-            month_start = hist["Close"].iloc[0]
-            change_pct = (current - month_start) / month_start * 100
-            high_30d = hist["High"].max()
-            low_30d = hist["Low"].min()
-            range_30d = high_30d - low_30d
-            position_in_range = ((current - low_30d) / range_30d * 100) if range_30d > 0 else 50
-            avg_volume = int(hist["Volume"].mean())
 
-            lines = [
-                f"Stock: {ticker}",
-                f"Company: {info.get('shortName', 'N/A')}",
-                f"Sector: {info.get('sector', 'N/A')}",
-                f"Current Price: ${current:.2f}",
-                f"30-Day Change: {change_pct:+.2f}%",
-                f"30-Day High: ${high_30d:.2f}",
-                f"30-Day Low: ${low_30d:.2f}",
-                f"Position in 30-Day Range: {position_in_range:.0f}% (0%=at low, 100%=at high)",
-                f"Avg Daily Volume (30d): {avg_volume:,}",
-            ]
+            hist = None
+            for period in ("1mo", "5d", "3mo"):
+                try:
+                    h = stock.history(period=period, repair=True)
+                    if not h.empty:
+                        hist = h
+                        break
+                except Exception:
+                    continue
+
+            if hist is None or hist.empty:
+                current = info.get("currentPrice") or info.get("regularMarketPrice") or info.get("previousClose")
+                if not current:
+                    return "No data found for the given ticker symbol."
+                lines = [
+                    f"Stock: {ticker}",
+                    f"Company: {info.get('shortName', 'N/A')}",
+                    f"Sector: {info.get('sector', 'N/A')}",
+                    f"Current Price: ${current:.2f}",
+                    f"Note: Historical price data temporarily unavailable; using last known price.",
+                ]
+            else:
+                current = hist["Close"].iloc[-1]
+                month_start = hist["Close"].iloc[0]
+                change_pct = (current - month_start) / month_start * 100 if month_start != 0 else 0.0
+                high_30d = hist["High"].max()
+                low_30d = hist["Low"].min()
+                range_30d = high_30d - low_30d
+                position_in_range = ((current - low_30d) / range_30d * 100) if range_30d > 0 else 50
+                avg_volume = int(hist["Volume"].mean())
+
+                lines = [
+                    f"Stock: {ticker}",
+                    f"Company: {info.get('shortName', 'N/A')}",
+                    f"Sector: {info.get('sector', 'N/A')}",
+                    f"Current Price: ${current:.2f}",
+                    f"30-Day Change: {change_pct:+.2f}%",
+                    f"30-Day High: ${high_30d:.2f}",
+                    f"30-Day Low: ${low_30d:.2f}",
+                    f"Position in 30-Day Range: {position_in_range:.0f}% (0%=at low, 100%=at high)",
+                    f"Avg Daily Volume (30d): {avg_volume:,}",
+                ]
 
             week52_high = info.get("fiftyTwoWeekHigh")
             week52_low = info.get("fiftyTwoWeekLow")
@@ -616,6 +663,12 @@ if analyze_btn:
         st.error("Session limit reached. Toggle **Use my own API keys** in the sidebar.")
     else:
         snapshot = get_stock_snapshot(ticker)
+        if not snapshot:
+            st.warning(
+                f"**Could not fetch live price data for {ticker}** — Yahoo Finance returned no data. "
+                f"The AI report will proceed without live prices and may be less accurate. "
+                f"Please verify the ticker symbol is correct."
+            )
         if snapshot:
             change_class = "positive" if snapshot["change_pct"] >= 0 else "negative"
             change_sign = "+" if snapshot["change_pct"] >= 0 else ""
