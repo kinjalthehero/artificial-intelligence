@@ -1,0 +1,7 @@
+streamlit==1.40.1
+crewai==0.11.2
+yfinance==0.2.41
+serpapi==1.0.2
+
+# Optional legacy fallback for older SerpAPI code paths:
+# google-search-results>=3.0.0
