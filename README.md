@@ -12,6 +12,13 @@ A multi-agent stock analysis app using:
 - `SerpAPI` for stock news
 - `yfinance` for market data
 
+### [mental-wellness-ai-app](mental-wellness-ai-app/)
+
+A conversational mental wellness chatbot with voice support and long-term memory using:
+- `Google Gemini` for LLM inference (via LangChain)
+- `ChromaDB` for conversation memory (RAG)
+- `SpeechRecognition` + `pyttsx3` for voice I/O
+
 #### Run locally
 
 ```zsh

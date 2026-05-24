@@ -1,0 +1,12 @@
+streamlit
+langchain
+langchain-google-genai
+chromadb
+python-dotenv
+langchain-community
+langchain-core
+speechrecognition
+pyaudio
+pyttsx3
+langchain-chroma
+
