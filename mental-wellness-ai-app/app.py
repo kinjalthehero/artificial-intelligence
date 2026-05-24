@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 import threading
 
 ### langchain and gemini
-
 from langchain_google_genai import (
     GoogleGenerativeAI,
     GoogleGenerativeAIEmbeddings
@@ -16,6 +15,7 @@ from langchain_core.documents import Document
 ### voice support
 
 import speech_recognition as sr
+# To speak the AI's responses to the user, we use pyttsx3 which is a text-to-speech conversion library in Python.
 import pyttsx3
 
 ## load environment variables
@@ -23,7 +23,6 @@ load_dotenv()
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 
 ## streamlit UI
-
 st.set_page_config(page_title="Mental Wellness Assistant", page_icon="🧠", layout="centered")
 
 st.title("Mental Wellness Assistant")
@@ -31,28 +30,27 @@ st.markdown("Welcome to your personal mental wellness assistant! How can I help 
 
 st.warning("This is not a licensed therapist. Please consult a professional for serious mental health issues.")
 
-### gemini model
-
+### gemini model using langchain
 llm = GoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.7, google_api_key=GOOGLE_API_KEY)
 
-## embeddings and vector store
-
+## embeddings and vector store using langchain
+# embeddings are used because we want to save the conversation history in a vector store
+# and retrieve relevant past conversations based on user input.
+# This allows the assistant to have a long-term memory and provide more contextually relevant responses.
 embeddings = GoogleGenerativeAIEmbeddings(google_api_key=GOOGLE_API_KEY, model="models/gemini-embedding-001")
 
-
+# Storing conversation history in Chroma vector store for long-term memory and retrieval
 vector_store = Chroma(
     collection_name="mental_wellness",
     embedding_function=embeddings,
     persist_directory="./chroma_db"
 )
 
-## TTS engine
-
+## TTS engine is used to speak the AI's responses to the user.
 tts_engine = pyttsx3.init()
 tts_engine.setProperty('rate', 150)  # Set speech rate
 
-## session state for conversation history
-
+## session state for conversation history and speaking status
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -62,10 +60,9 @@ if "speaking" not in st.session_state:
 if "speech_thread" not in st.session_state:
     st.session_state.speech_thread = None
 
-## speach function
-
+# speach function to speak the AI's responses to the user in a non-blocking way using threading.
+# This allows the UI to remain responsive while the AI is speaking.
 def _speak(text):
-
     try:
         st.session_state.speaking = True
         tts_engine.say(text)
@@ -75,24 +72,20 @@ def _speak(text):
     finally:
         st.session_state.speaking = False
 
-### start speaking
-
+# start speaking the AI's response to the user.
 def speak_text(text):
-
     try:
         tts_engine.stop()
     except:
         pass
-
     speech_thread = threading.Thread(target=_speak, args=(text,))
     speech_thread.start()
     st.session_state.speech_thread = speech_thread
 
 
-## stop speakiung
-
+## stop speaking if the user clicks the "Stop Speaking" button,
+# it will stop the TTS engine and set the speaking status to False.
 def stop_speaking():
-
     try:
         tts_engine.stop()
     except Exception as e:
@@ -101,12 +94,10 @@ def stop_speaking():
         st.session_state.speaking = False
 
 
-## speech to text
-
+## listen to user using speech recognition.
+# It listens to the user's voice input and converts it to text using Google's speech recognition API.
 def listen_to_user():
-
     recognizer = sr.Recognizer()
-
     try:
         with sr.Microphone() as source:
             st.info("Listening... Please speak now.")
@@ -120,14 +111,12 @@ def listen_to_user():
 
 
 ### display conversation history
-
+# This loop iterates through the conversation history stored in the session state and displays each message in the chat interface.
 for message in st.session_state.messages:
-
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-### buttons for UI
-
+###### UI CODE #######
 col1, col2 = st.columns(2)
 
 voice_input = None
@@ -137,22 +126,18 @@ with col1:
         if voice_input:
            st.success(f"You said: {voice_input}")
 
-
 with col2:
     if st.button("⏹️ Stop Speaking"):
         stop_speaking()
         st.success("Stopped speaking.")
 
 ### text input for user
-
 text_input = st.text_input("Type your message here...")
 
 ### final input
-
 user_input = voice_input if voice_input else text_input
 
 ### main conversation logic
-
 if user_input:
 
     ### show user message
@@ -162,7 +147,9 @@ if user_input:
         st.markdown(user_input)
 
     ### retriueve from long term story
-
+    # we're retrieving because we want to provide the AI with relevant past conversations that can help it generate a more contextually relevant response.
+    # By using similarity search on the vector store, we can find past conversations that are similar to the current user input and include them in the prompt for the AI.
+    # This allows the AI to have a better understanding of the user's history and provide more personalized and helpful responses.
     try:
         relevant_docs = vector_store.similarity_search(user_input, k=3)
         memory_context = "\n\n".join([doc.page_content for doc in relevant_docs])
@@ -216,20 +203,16 @@ Based on the above information, provide a supportive, calm and helpful response 
         response_text = str(response)
 
     ### crisis detection
-
     crisis_keywords = ["suicide", "self-harm", "severe distress", "severe depression"]
 
     lower_input = user_input.lower()
 
     if any(word in lower_input for word in crisis_keywords):
-
         response += """
-
 **It seems like you might be going through a tough time. Please consider reaching out to a mental health professional, trusted friend, or family member for support. If you're in immediate danger, please contact emergency services or a crisis helpline. You're not alone, and there are people who care about you and want to help.**
 """
 
     ## save to long term memory
-
     try:
         vector_store.add_documents([
             Document(page_content=f"User: {user_input}\nAssistant: {response_text}",

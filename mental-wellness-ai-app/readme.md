@@ -4,10 +4,16 @@ A conversational mental wellness chatbot with voice support, long-term memory, a
 
 ## How It Works
 
-- **Text & Voice Input** — Type a message or use the microphone button for speech-to-text (Google Speech Recognition)
-- **AI Responses** — Google Gemini 2.5 Flash generates empathetic, supportive responses via LangChain
-- **Long-Term Memory** — Conversations are stored in a ChromaDB vector store and retrieved via similarity search (RAG), so the assistant remembers context across messages
-- **Text-to-Speech** — Responses are spoken aloud using pyttsx3 (runs in a background thread to avoid blocking the UI)
+When you send a message, the app follows this flow:
+
+1. **Retrieve context** — Your input is embedded and compared against past conversations stored in a ChromaDB vector store. The most relevant prior exchanges are pulled in as context, giving the assistant long-term memory across messages.
+2. **Generate a response** — The retrieved context and your current message are combined into a prompt and sent to Google Gemini 2.5 Flash (via LangChain). The LLM produces an empathetic, supportive response grounded in both the current conversation and relevant history.
+3. **Display the answer** — The response is rendered in the Streamlit chat interface and the conversation is saved back to the vector store for future retrieval.
+4. **Read it aloud** — The response is spoken using pyttsx3 text-to-speech in a background thread, so the UI stays responsive while the assistant talks.
+
+### Additional Features
+
+- **Voice Input** — Use the microphone button for speech-to-text (Google Speech Recognition) instead of typing
 - **Crisis Detection** — If the user mentions keywords like "suicide" or "self-harm", the assistant appends helpline and professional support guidance
 
 ## Tech Stack
