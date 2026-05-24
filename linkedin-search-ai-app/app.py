@@ -35,8 +35,11 @@ if st.button("Find Jobs"):
         st.link_button("Apply", job["link"])
 
     if relevant_jobs:
-        send_email(relevant_jobs)
-        st.success("Email Sent")
+        try:
+            send_email(relevant_jobs)
+            st.success("Email Sent")
+        except Exception as e:
+            st.warning(f"Could not send email: {e}")
 
 st.divider()
 st.subheader("Saved Jobs")
