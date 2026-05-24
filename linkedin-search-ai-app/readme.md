@@ -1,5 +1,7 @@
 # LinkedIn Job Search AI Agent
 
+**[Try the Live App](https://artificial-intelligence-production-febc.up.railway.app/)**
+
 An AI-powered job search agent that scrapes LinkedIn for job postings, uses Google Gemini to score each job against your skills, saves relevant matches to a database, and emails you the top results.
 
 ## How It Works
@@ -8,7 +10,7 @@ An AI-powered job search agent that scrapes LinkedIn for job postings, uses Goog
 2. **Score with AI** — Each scraped job is sent to Google Gemini 2.5 Flash (via LangChain) along with your skills. The LLM returns a relevance verdict ("Relevant" or "Not Relevant") and a score out of 100.
 3. **Save to database** — Every job and its score are stored in a local SQLite database (`jobs.db`). Duplicate links are skipped via a unique constraint.
 4. **Display results** — The Streamlit UI shows only the relevant jobs with their details and a direct "Apply" link. A table of all saved jobs is displayed below.
-5. **Email notification** — If any relevant jobs are found, a summary email is sent via Gmail SMTP with the job titles, companies, locations, and application links.
+5. **Email notification** — If any relevant jobs are found, a summary email is sent via Gmail SMTP with the job titles, companies, locations, and application links. (Gracefully skipped on platforms that block outbound SMTP.)
 
 ### Scheduled Mode
 
@@ -55,6 +57,13 @@ User enters skills + keyword in Streamlit UI
 | **Email** | Gmail SMTP (smtplib) |
 | **Scheduling** | schedule (Python) |
 | **Containerization** | Docker |
+| **Deployment** | Railway |
+
+## Live Demo
+
+The app is deployed on Railway: **[artificial-intelligence-production-febc.up.railway.app](https://artificial-intelligence-production-febc.up.railway.app/)**
+
+> **Note:** Email notifications are unavailable in the deployed version because Railway's free tier blocks outbound SMTP connections. The rest of the pipeline (scraping, AI scoring, database, UI) works normally. Email works when running locally.
 
 ## Project Structure
 
