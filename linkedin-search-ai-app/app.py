@@ -17,10 +17,12 @@ if st.button("Find Jobs"):
     relevant_jobs = []
 
     for job in jobs:
-        # job from the LinkedIn scrapper and skills from the user input
-        result = analyze_job(job, skills)
+        try:
+            result = analyze_job(job, skills)
+        except Exception as e:
+            st.warning(f"Rate limit reached — scored {len(relevant_jobs)} of {len(jobs)} jobs before quota ran out.")
+            break
         job["score"] = result
-        # insert job into the database
         insert_job(job)
         if "Relevant" in result:
             relevant_jobs.append(job)
