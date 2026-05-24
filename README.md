@@ -19,6 +19,14 @@ A conversational mental wellness chatbot with voice support and long-term memory
 - `ChromaDB` for conversation memory (RAG)
 - `SpeechRecognition` + `pyttsx3` for voice I/O
 
+### [linkedin-search-ai-app](linkedin-search-ai-app/)
+
+An AI-powered job search agent that scrapes LinkedIn, scores jobs with Gemini, and emails top matches using:
+- `Playwright` for LinkedIn scraping
+- `Google Gemini` for job relevance scoring (via LangChain)
+- `SQLite` for job storage
+- `Gmail SMTP` for email notifications
+
 #### Run locally
 
 ```zsh

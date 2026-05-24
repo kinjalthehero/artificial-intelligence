@@ -19,6 +19,9 @@ venv/
 # ChromaDB local storage
 chroma_db/
 
+# SQLite databases
+*.db
+
 # macOS / IDE
 .DS_Store
 .idea/

@@ -1,0 +1,10 @@
+streamlit
+pandas
+schedule
+langchain
+langchain-google-genai
+google-generativeai
+python-dotenv
+playwright
+sqlalchemy
+beautifulsoup4

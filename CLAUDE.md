@@ -51,6 +51,35 @@ python3 -m streamlit run app.py
 
 **Architecture:** Single-file app (`app.py`). Uses `langchain_google_genai` for Gemini 2.5 Flash, ChromaDB vector store for similarity-searched conversation history, threaded TTS for non-blocking speech output. Crisis keyword detection appends helpline guidance to responses.
 
+### linkedin-search-ai-app
+
+AI job search agent — scrapes LinkedIn with Playwright, scores jobs against user skills via Gemini, stores in SQLite, emails matches via Gmail SMTP. Has both a Streamlit UI and a headless scheduler mode.
+
+**Run locally:**
+```bash
+cd linkedin-search-ai-app
+python3 -m venv venv && source venv/bin/activate
+python3 -m pip install -r requirements.txt
+playwright install --with-deps
+python3 -m streamlit run app.py
+```
+
+**Run with Docker:**
+```bash
+docker build -t linkedin-search-ai .
+docker run -itd -p 8501:8501 --env-file .env --name linkedin-search linkedin-search-ai
+```
+
+**Secrets:** Requires `GOOGLE_API_KEY`, `EMAIL_SENDER`, `EMAIL_PASSWORD`, `EMAIL_RECEIVER` in a `.env` file. Gmail App Password needed (2-Step Verification must be enabled).
+
+**Architecture:**
+- `app.py` — Streamlit entry point; takes skills + keyword input, orchestrates the pipeline, displays results
+- `scraper.py` — Playwright headless Chromium; scrapes LinkedIn public job search, extracts up to 20 job cards
+- `agent.py` — Sends each job + user skills to Gemini 2.5 Flash via LangChain; returns "Relevant/Not Relevant" + score
+- `database.py` — SQLite CRUD; `jobs.db` with unique constraint on link to avoid duplicates
+- `mailer.py` — Gmail SMTP sender; sends formatted email with matching job details
+- `scheduler.py` — Headless mode; runs the full pipeline every 6 hours using the `schedule` library with hardcoded skills
+
 ## Development Notes
 
 - Each project has its own `requirements.txt` — install from within the project directory, not the root
