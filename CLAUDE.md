@@ -80,6 +80,31 @@ docker run -itd -p 8501:8501 --env-file .env --name linkedin-search linkedin-sea
 - `mailer.py` — Gmail SMTP sender; sends formatted email with matching job details
 - `scheduler.py` — Headless mode; runs the full pipeline every 6 hours using the `schedule` library with hardcoded skills
 
+### ollama-local-ai
+
+Fully offline AI chat application with RAG (document Q&A). React + FastAPI full-stack app that runs entirely on localhost via Ollama. Designed for macOS with a double-click app launcher.
+
+**Run locally:**
+```bash
+cd ollama-local-ai
+./scripts/setup.sh   # one-time: installs Ollama, models, dependencies
+./scripts/start.sh   # launches backend + opens browser
+```
+
+**Architecture:**
+- `backend/app/main.py` — FastAPI entry point; serves API and built frontend as static files
+- `backend/app/routers/chat.py` — SSE streaming chat endpoint with RAG integration
+- `backend/app/routers/conversations.py` — Conversation CRUD + full-text search
+- `backend/app/routers/documents.py` — File upload, parsing, chunking, embedding
+- `backend/app/services/ollama_service.py` — Async Ollama API wrapper
+- `backend/app/services/rag_service.py` — RAG pipeline: chunk, embed (nomic-embed-text), query ChromaDB
+- `backend/app/services/document_parser.py` — PDF (PyMuPDF) and text extraction
+- `frontend/src/` — React 19 + TypeScript + Tailwind CSS 4; custom hooks for chat streaming, conversations, documents, theme
+
+Key pattern: chat uses Server-Sent Events for real-time token streaming. Each uploaded document gets its own ChromaDB collection (`doc_{uuid}`) for isolation. Frontend is built and served as static files by FastAPI in production.
+
+**Stack:** FastAPI, Ollama (llama3.1:8b), ChromaDB, SQLite, React 19, TypeScript, Vite, Tailwind CSS 4.
+
 ## Development Notes
 
 - Each project has its own `requirements.txt` — install from within the project directory, not the root
