@@ -1,4 +1,4 @@
-# Ollama Local AI
+# Ollama RAG Chat
 
 A fully offline, privacy-first AI chat application with document Q&A (RAG) capabilities. Runs entirely on your Mac -- no cloud, no API keys, no data leaves your machine.
 
@@ -6,7 +6,7 @@ Upload PDFs, text files, or Markdown documents and ask questions answered direct
 
 ## Screenshot
 
-![Ollama Local AI](docs/screenshot.png)
+![Ollama RAG Chat](docs/screenshot.png)
 
 ## Features
 
@@ -31,7 +31,7 @@ Upload PDFs, text files, or Markdown documents and ask questions answered direct
 ### One-Time Setup
 
 ```bash
-cd ollama-local-ai
+cd ollama-rag-chat
 chmod +x scripts/setup.sh
 ./scripts/setup.sh
 ```
@@ -48,7 +48,7 @@ This installs Ollama, pulls the required models (`llama3.1:8b` and `nomic-embed-
 
 **Option B -- macOS app:**
 
-Double-click `scripts/Ollama Local AI.app` (or drag it to your Dock).
+Double-click `scripts/Ollama RAG Chat.app` (or drag it to your Dock).
 
 The app opens at [http://localhost:8000](http://localhost:8000).
 
@@ -161,7 +161,7 @@ Query:    Question ──▶ Embed ──▶ Similarity Search (top 5)
 ## Project Structure
 
 ```
-ollama-local-ai/
+ollama-rag-chat/
 ├── backend/
 │   ├── app/
 │   │   ├── main.py              # FastAPI entry point, lifespan hooks

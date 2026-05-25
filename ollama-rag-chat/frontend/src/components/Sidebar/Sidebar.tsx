@@ -47,7 +47,7 @@ export function Sidebar({
           className="text-base font-semibold"
           style={{ color: 'var(--color-text-primary)' }}
         >
-          Ollama Local AI
+          Ollama RAG Chat
         </h1>
         <button
           onClick={onToggleTheme}

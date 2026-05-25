@@ -80,13 +80,13 @@ docker run -itd -p 8501:8501 --env-file .env --name linkedin-search linkedin-sea
 - `mailer.py` — Gmail SMTP sender; sends formatted email with matching job details
 - `scheduler.py` — Headless mode; runs the full pipeline every 6 hours using the `schedule` library with hardcoded skills
 
-### ollama-local-ai
+### ollama-rag-chat
 
 Fully offline AI chat application with RAG (document Q&A). React + FastAPI full-stack app that runs entirely on localhost via Ollama. Designed for macOS with a double-click app launcher.
 
 **Run locally:**
 ```bash
-cd ollama-local-ai
+cd ollama-rag-chat
 ./scripts/setup.sh   # one-time: installs Ollama, models, dependencies
 ./scripts/start.sh   # launches backend + opens browser
 ```

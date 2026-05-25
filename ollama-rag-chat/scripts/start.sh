@@ -26,7 +26,7 @@ trap cleanup SIGINT SIGTERM EXIT
 
 echo ""
 echo "  ╔═══════════════════════════════════╗"
-echo "  ║       Ollama Local AI             ║"
+echo "  ║       Ollama RAG Chat             ║"
 echo "  ╚═══════════════════════════════════╝"
 echo ""
 

@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Ollama Local AI",
+    title="Ollama RAG Chat",
     description="Locally-deployed AI chat API backed by Ollama.",
     version="0.1.0",
     lifespan=lifespan,
@@ -63,7 +63,7 @@ else:
     @app.get("/", tags=["root"])
     async def root():
         return {
-            "app": "Ollama Local AI",
+            "app": "Ollama RAG Chat",
             "docs": "/docs",
             "health": "/api/health",
             "note": "Run 'npm run build' in frontend/ to enable the UI",

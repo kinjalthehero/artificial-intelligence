@@ -1,4 +1,4 @@
-# Ollama Local AI - Design Document
+# Ollama RAG Chat - Design Document
 
 ## 1. Overview
 
@@ -205,7 +205,7 @@ Query flow:
 
 ```
 +-------+------------------------------------------+
-|       |  Ollama Local AI            [model: v]   |
+|       |  Ollama RAG Chat            [model: v]   |
 | NEW   |------------------------------------------|
 | CHAT  |                                          |
 |       |  [User message bubble]                   |
@@ -259,7 +259,7 @@ App
 ## 9. Project Structure
 
 ```
-ollama-local-ai/
+ollama-rag-chat/
 ├── backend/
 │   ├── app/
 │   │   ├── main.py              # FastAPI app, CORS, lifespan
@@ -302,7 +302,7 @@ ollama-local-ai/
 ├── scripts/
 │   ├── start.sh                 # Launch script (Ollama + backend + frontend)
 │   ├── setup.sh                 # One-time setup (install deps, pull models)
-│   └── OllamaLocalAI.app/      # macOS Automator app wrapper
+│   └── OllamaRAGChat.app/      # macOS Automator app wrapper
 ├── DESIGN.md
 ├── README.md (created during implementation)
 └── .gitignore

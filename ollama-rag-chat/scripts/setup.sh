@@ -15,7 +15,7 @@ err()   { echo -e "${RED}[ERROR]${NC} $1"; }
 
 echo ""
 echo "============================================"
-echo "  Ollama Local AI — One-Time Setup"
+echo "  Ollama RAG Chat — One-Time Setup"
 echo "============================================"
 echo ""
 
@@ -114,7 +114,7 @@ echo "============================================"
 echo -e "  ${GREEN}Setup complete!${NC}"
 echo ""
 echo "  To launch the app:"
-echo "    1. Double-click 'Ollama Local AI.app' in the scripts/ folder"
+echo "    1. Double-click 'Ollama RAG Chat.app' in the scripts/ folder"
 echo "    2. Or run: ./scripts/start.sh"
 echo "============================================"
 echo ""

@@ -3,7 +3,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-APP_NAME="Ollama Local AI"
+APP_NAME="Ollama RAG Chat"
 APP_DIR="$SCRIPT_DIR/$APP_NAME.app"
 
 rm -rf "$APP_DIR"
@@ -18,11 +18,11 @@ cat > "$APP_DIR/Contents/Info.plist" << 'PLIST'
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>
-    <string>Ollama Local AI</string>
+    <string>Ollama RAG Chat</string>
     <key>CFBundleDisplayName</key>
-    <string>Ollama Local AI</string>
+    <string>Ollama RAG Chat</string>
     <key>CFBundleIdentifier</key>
-    <string>com.local.ollama-local-ai</string>
+    <string>com.local.ollama-rag-chat</string>
     <key>CFBundleVersion</key>
     <string>1.0.0</string>
     <key>CFBundleShortVersionString</key>
@@ -55,7 +55,7 @@ PROJECT_DIR="$(cat "$RESOURCES_DIR/project_path")"
 START_SCRIPT="$PROJECT_DIR/scripts/start.sh"
 
 if [ ! -f "$START_SCRIPT" ]; then
-    osascript -e "display alert \"Ollama Local AI\" message \"Project not found at: $PROJECT_DIR\" as critical"
+    osascript -e "display alert \"Ollama RAG Chat\" message \"Project not found at: $PROJECT_DIR\" as critical"
     exit 1
 fi
 

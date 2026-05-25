@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_PATH: str = str(
-        Path(__file__).resolve().parent.parent / "data" / "ollama_local_ai.db"
+        Path(__file__).resolve().parent.parent / "data" / "ollama_rag_chat.db"
     )
 
     # Vector store
