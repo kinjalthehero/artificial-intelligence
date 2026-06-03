@@ -42,11 +42,12 @@ class GeminiService:
             max_output_tokens=4096,
         )
 
-        async for chunk in self._client.aio.models.generate_content_stream(
+        response = await self._client.aio.models.generate_content_stream(
             model=self._model,
             contents=contents,
             config=config,
-        ):
+        )
+        async for chunk in response:
             if chunk.text:
                 yield chunk.text
 
