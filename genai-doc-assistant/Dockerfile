@@ -16,4 +16,7 @@ RUN mkdir -p data/uploads data/chromadb
 
 EXPOSE 8000
 
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=15s \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health-check')" || exit 1
+
 CMD ["python", "main.py"]

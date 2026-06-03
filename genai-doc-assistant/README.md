@@ -135,8 +135,10 @@ genai-doc-assistant/
 │   └── dist/         # Pre-built production frontend
 ├── data/sample/      # Sample documents for demo
 ├── docs/             # Architecture, API, agent workflow docs
+├── aws/              # AWS EC2 deployment guide + scripts
 ├── main.py           # FastAPI entry point
 ├── Dockerfile        # Docker build (Python-only, pre-built frontend)
+├── docker-compose.yml # Docker Compose for EC2 deployment
 └── render.yaml       # Render.com deployment blueprint
 ```
 
@@ -146,18 +148,30 @@ genai-doc-assistant/
 - [Agent Workflow](docs/AGENT_WORKFLOW.md)
 - [API Reference](docs/API_REFERENCE.md)
 - [Limitations & Security](docs/LIMITATIONS.md)
+- [AWS EC2 Deployment Guide](aws/DEPLOY_AWS.md)
 
 ## Deployment
 
-Deployed on Render.com (free tier) with Docker:
+### Option 1: Render.com (Free, always-on-ish)
 
-1. Push to GitHub
-2. Connect repo to Render.com → New Web Service → Docker
-3. Set Root Directory to `genai-doc-assistant`
-4. Add `GOOGLE_API_KEY` environment variable
-5. Deploy (auto-builds from Dockerfile)
+1. Connect repo to Render.com > New Web Service > Docker
+2. Set Root Directory to `genai-doc-assistant`
+3. Add `GOOGLE_API_KEY` environment variable
+4. Deploy (auto-builds from Dockerfile)
 
-The frontend is pre-built and committed to git, so the Docker build only needs Python — no Node.js required in production.
+### Option 2: AWS EC2 + Docker (Free for 12 months)
+
+1. Launch EC2 t3.micro (free tier)
+2. SSH in and run the setup script
+3. Add your API key and start with `docker compose up -d`
+
+See the full [AWS Deployment Guide](aws/DEPLOY_AWS.md) for step-by-step instructions with AWS concepts explained.
+
+### Rate Limiting
+
+Per-IP rate limiting protects the Gemini API from abuse:
+- Chat: 10 queries/hour per visitor
+- Uploads: 5 uploads/hour per visitor
 
 ## License
 

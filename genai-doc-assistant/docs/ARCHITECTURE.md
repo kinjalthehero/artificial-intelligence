@@ -52,7 +52,35 @@
                           ▼
               ┌───────────────────────┐
               │  Google Gemini API    │
-              │  (2.5 Flash, Free)    │
+              │  (2.5 Flash, Paid)   │
+              └───────────────────────┘
+```
+
+## Deployment Architecture
+
+```
+                    ┌─────────────────────┐
+                    │     GitHub Repo     │
+                    │  (source of truth)  │
+                    └──────┬──────┬───────┘
+                           │      │
+              ┌────────────┘      └────────────┐
+              ▼                                 ▼
+┌──────────────────────┐          ┌──────────────────────┐
+│   Render.com (Free)  │          │   AWS EC2 (Free 12mo)│
+│   Docker container   │          │   Docker Compose     │
+│   Auto-deploy on push│          │   Manual deploy      │
+│   Sleeps after 15min │          │   Always running     │
+│   Ephemeral storage  │          │   Persistent volumes │
+└──────────────────────┘          └──────────────────────┘
+              │                                 │
+              └──────────┬──────────────────────┘
+                         ▼
+              ┌───────────────────────┐
+              │   Google Cloud        │
+              │   Gemini API (Paid)   │
+              │   Quotas: 1500/day    │
+              │   Budget alert: $5/mo │
               └───────────────────────┘
 ```
 

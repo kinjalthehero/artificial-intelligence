@@ -4,11 +4,13 @@ import uuid
 from fastapi import APIRouter, HTTPException, Request
 from sse_starlette.sse import EventSourceResponse
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.logging_config import get_logger
 from app.core.models import AskQuestionRequest
 from app.services.gemini_service import gemini_service
 from app.services.rag_service import rag_service
+from app.utils.rate_limiter import ip_rate_limiter, get_client_ip
 from app.utils.validators import validate_query
 
 logger = get_logger(__name__)
@@ -72,6 +74,8 @@ async def _get_context_messages(db, conversation_id: str) -> list[dict]:
 
 @router.post("/ask-questions")
 async def ask_questions(body: AskQuestionRequest, request: Request):
+    ip = get_client_ip(request)
+    ip_rate_limiter.check("chat", ip, settings.RATE_LIMIT_CHAT_PER_IP, settings.RATE_LIMIT_WINDOW_SECONDS)
     validate_query(body.message)
 
     db = await get_db()

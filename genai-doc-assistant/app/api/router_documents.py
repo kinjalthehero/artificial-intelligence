@@ -1,7 +1,7 @@
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi import APIRouter, HTTPException, Request, UploadFile
 
 from app.core.config import settings
 from app.core.database import get_db
@@ -10,6 +10,7 @@ from app.core.models import DocumentOut
 from app.services.chunking_service import chunking_service
 from app.services.document_parser import extract_text
 from app.services.vector_store import vector_store
+from app.utils.rate_limiter import ip_rate_limiter, get_client_ip
 from app.utils.validators import validate_upload, validate_file_size
 
 logger = get_logger(__name__)
@@ -31,7 +32,9 @@ def _row_to_document(row) -> DocumentOut:
 
 
 @router.post("/upload-document", response_model=DocumentOut, status_code=201)
-async def upload_document(file: UploadFile):
+async def upload_document(file: UploadFile, request: Request):
+    ip = get_client_ip(request)
+    ip_rate_limiter.check("upload", ip, settings.RATE_LIMIT_UPLOAD_PER_IP, settings.RATE_LIMIT_WINDOW_SECONDS)
     suffix = validate_upload(file)
     content = await validate_file_size(file)
 
