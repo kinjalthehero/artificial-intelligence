@@ -105,6 +105,35 @@ Key pattern: chat uses Server-Sent Events for real-time token streaming. Each up
 
 **Stack:** FastAPI, Ollama (llama3.1:8b), ChromaDB, SQLite, React 19, TypeScript, Vite, Tailwind CSS 4.
 
+### genai-doc-assistant
+
+AI-powered document Q&A capstone project with RAG pipeline and multi-agent reasoning. Upload documents (PDF, TXT, CSV, Excel, JSON, YAML) and ask questions — answers are grounded with source citations via a 5-agent pipeline (Planner, Retriever, Reasoning, Response, Verification).
+
+**Run locally:**
+```bash
+cd genai-doc-assistant
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+cd frontend && npm install && npm run build && cd ..
+cp .env.example .env  # Add GOOGLE_API_KEY
+python main.py
+```
+
+**Secrets:** Requires `GOOGLE_API_KEY` in a `.env` file.
+
+**Architecture:**
+- `main.py` — FastAPI entry point; serves API and built React frontend
+- `app/api/` — REST endpoints: `/upload-document`, `/ask-questions`, `/health-check`, conversations CRUD
+- `app/services/` — Document parsing (6 formats), chunking (LlamaIndex SentenceSplitter), embedding (Gemini), ChromaDB vector store, RAG pipeline, Gemini streaming
+- `app/agents/` — 5-agent LlamaIndex pipeline: `planner_agent.py`, `retriever_agent.py`, `reasoning_agent.py`, `response_agent.py`, `verification_agent.py`, orchestrated by `orchestrator.py`
+- `app/core/` — Config (pydantic-settings), SQLite database, Pydantic models, structured logging
+- `app/utils/` — Input validators, rate limiter, text cleaner
+- `frontend/src/` — React 19 + TypeScript + Tailwind CSS 4; AgentWorkflow component shows real-time agent progress
+
+**Stack:** FastAPI, Google Gemini 2.5 Flash, LlamaIndex, ChromaDB, SQLite, React 19, TypeScript, Vite, Tailwind CSS 4.
+
+**Deploy:** Render.com free tier with Docker. Set `GOOGLE_API_KEY` env var.
+
 ## Development Notes
 
 - Each project has its own `requirements.txt` — install from within the project directory, not the root

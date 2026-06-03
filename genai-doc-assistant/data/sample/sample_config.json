@@ -1,0 +1,62 @@
+{
+  "project": {
+    "name": "GenAI Document Assistant",
+    "version": "1.0.0",
+    "description": "AI-powered document Q&A with RAG pipeline and multi-agent reasoning"
+  },
+  "architecture": {
+    "frontend": {
+      "framework": "React 19",
+      "language": "TypeScript",
+      "bundler": "Vite",
+      "styling": "Tailwind CSS 4"
+    },
+    "backend": {
+      "framework": "FastAPI",
+      "language": "Python 3.11",
+      "database": "SQLite",
+      "vector_store": "ChromaDB"
+    },
+    "ai": {
+      "llm": "Google Gemini 2.5 Flash",
+      "embeddings": "Gemini gemini-embedding-001",
+      "agent_framework": "LlamaIndex",
+      "agents": [
+        {
+          "name": "Planner",
+          "role": "Decomposes user query into retrieval strategy",
+          "has_tools": false
+        },
+        {
+          "name": "Retriever",
+          "role": "Fetches relevant document chunks from vector store",
+          "has_tools": true
+        },
+        {
+          "name": "Reasoning",
+          "role": "Analyzes and synthesizes retrieved content",
+          "has_tools": false
+        },
+        {
+          "name": "Response",
+          "role": "Generates grounded answer with citations",
+          "has_tools": false
+        },
+        {
+          "name": "Verification",
+          "role": "Validates response grounding in source documents",
+          "has_tools": false
+        }
+      ]
+    }
+  },
+  "supported_formats": ["PDF", "TXT", "CSV", "Excel", "JSON", "YAML"],
+  "constraints": {
+    "max_file_size_mb": 10,
+    "max_query_length": 2000,
+    "gemini_rate_limit_rpm": 15,
+    "rag_top_k": 5,
+    "chunk_size_tokens": 512,
+    "chunk_overlap_tokens": 50
+  }
+}
