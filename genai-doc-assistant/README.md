@@ -1,8 +1,12 @@
 # GenAI Document Assistant
 
+**[Live Demo](https://genai-doc-assistant-slnu.onrender.com)** | [API Docs](https://genai-doc-assistant-slnu.onrender.com/docs)
+
 AI-powered document Q&A application with RAG pipeline and multi-agent reasoning.
 
 Upload documents (PDF, TXT, CSV, Excel, JSON, YAML), ask natural language questions, and get accurate, grounded answers with source citations — powered by a 5-agent reasoning pipeline.
+
+> **Note:** The live demo runs on Render.com free tier and may take 30-60 seconds to wake up after inactivity.
 
 ## Architecture
 
@@ -43,11 +47,21 @@ User → React Frontend → FastAPI Backend → Agent Pipeline → Gemini 2.5 Fl
 - **Dark/Light Theme**: Toggle between themes
 - **Conversation History**: Full chat history with search
 
+## Live Demo
+
+**https://genai-doc-assistant-slnu.onrender.com**
+
+Try it out:
+1. Upload a document (PDF, CSV, TXT, Excel, JSON, or YAML)
+2. Ask a question about its content
+3. Watch the 5-agent pipeline process your question in real-time
+4. Get a grounded answer with source citations
+
 ## Quick Start
 
 ### Prerequisites
 - Python 3.11+
-- Node.js 20+
+- Node.js 20+ (for frontend development only)
 - Google API Key ([Get one free](https://aistudio.google.com/apikey))
 
 ### Setup
@@ -60,7 +74,7 @@ cd genai-doc-assistant
 python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 
-# Frontend
+# Frontend (for development only - pre-built dist is included)
 cd frontend && npm install && cd ..
 
 # Environment
@@ -71,16 +85,16 @@ cp .env.example .env
 ### Run Locally
 
 ```bash
-# Terminal 1: Backend
+# Terminal 1: Backend (serves pre-built frontend at localhost:8000)
 source venv/bin/activate
 python main.py
 
-# Terminal 2: Frontend (dev mode)
+# Terminal 2: Frontend dev mode (optional, for UI development)
 cd frontend
 npm run dev
 ```
 
-Open http://localhost:3000
+Open http://localhost:8000 (production build) or http://localhost:3000 (dev mode)
 
 ### Run with Docker
 
@@ -105,6 +119,8 @@ Open http://localhost:8000
 | POST | `/api/conversations` | Create conversation |
 | DELETE | `/api/conversations/{id}` | Delete conversation |
 
+Interactive API documentation: [Swagger UI](https://genai-doc-assistant-slnu.onrender.com/docs)
+
 ## Project Structure
 
 ```
@@ -116,10 +132,11 @@ genai-doc-assistant/
 │   ├── core/         # Config, database, models, logging
 │   └── utils/        # Validators, rate limiter, text cleaner
 ├── frontend/         # React 19 + TypeScript + Tailwind
+│   └── dist/         # Pre-built production frontend
 ├── data/sample/      # Sample documents for demo
 ├── docs/             # Architecture, API, agent workflow docs
 ├── main.py           # FastAPI entry point
-├── Dockerfile        # Multi-stage Docker build
+├── Dockerfile        # Docker build (Python-only, pre-built frontend)
 └── render.yaml       # Render.com deployment blueprint
 ```
 
@@ -132,14 +149,15 @@ genai-doc-assistant/
 
 ## Deployment
 
-Deploy to Render.com (free tier):
+Deployed on Render.com (free tier) with Docker:
 
 1. Push to GitHub
-2. Connect repo to Render.com
-3. Set `GOOGLE_API_KEY` environment variable
-4. Deploy (auto-detects Dockerfile)
+2. Connect repo to Render.com → New Web Service → Docker
+3. Set Root Directory to `genai-doc-assistant`
+4. Add `GOOGLE_API_KEY` environment variable
+5. Deploy (auto-builds from Dockerfile)
 
-See [Deployment Guide](docs/LIMITATIONS.md) for details.
+The frontend is pre-built and committed to git, so the Docker build only needs Python — no Node.js required in production.
 
 ## License
 

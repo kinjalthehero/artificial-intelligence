@@ -1,5 +1,7 @@
 # System Architecture
 
+**Live Demo**: https://genai-doc-assistant-slnu.onrender.com
+
 ## Overview
 
 ```

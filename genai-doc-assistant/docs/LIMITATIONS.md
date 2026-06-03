@@ -3,7 +3,7 @@
 ## Limitations
 
 - **Rate Limiting**: Gemini free tier allows 15 requests per minute. The 5-agent pipeline uses ~5 API calls per query, limiting throughput to ~3 queries/minute.
-- **Cold Start**: Render.com free tier sleeps after 15 minutes of inactivity. First request takes 30-60 seconds to wake up.
+- **Cold Start**: Render.com free tier sleeps after 15 minutes of inactivity. First request takes 30-60 seconds to wake up. The app shows a "Waking up the server" loading screen during this time.
 - **Memory**: Render free tier provides 512 MB RAM. Large documents or many concurrent users may cause issues.
 - **File Size**: Maximum upload size is 10 MB per file.
 - **No Authentication**: The application is a public demo with no user authentication or data isolation.

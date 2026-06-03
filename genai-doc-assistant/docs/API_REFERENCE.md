@@ -1,5 +1,9 @@
 # API Reference
 
+**Live API**: https://genai-doc-assistant-slnu.onrender.com/api
+
+**Swagger UI**: https://genai-doc-assistant-slnu.onrender.com/docs
+
 Base URL: `/api`
 
 ## Health Check
