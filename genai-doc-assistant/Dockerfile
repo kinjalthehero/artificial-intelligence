@@ -2,9 +2,9 @@
 FROM node:20-alpine AS frontend-build
 WORKDIR /frontend
 COPY frontend/package.json frontend/package-lock.json* ./
-RUN npm install
+RUN npm install --include=dev
 COPY frontend/ .
-RUN npm run build
+RUN npx tsc -b && npx vite build
 
 # Stage 2: Python backend
 FROM python:3.11-slim
