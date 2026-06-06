@@ -3,7 +3,7 @@
 ## Limitations
 
 - **Gemini API Quotas**: Using Gemini paid tier with daily request quotas set in Google Cloud Console (1,500 requests/day, 30 RPM) to cap costs at ~$5/month. The 5-agent pipeline uses ~5 API calls per query.
-- **Per-IP Rate Limiting**: Each visitor is limited to 10 chat queries/hour and 5 document uploads/hour to prevent abuse.
+- **Per-IP Rate Limiting**: Each visitor is limited to 30 chat queries/hour and 10 document uploads/hour to prevent abuse.
 - **Cold Start (Render)**: Render.com free tier sleeps after 15 minutes of inactivity. First request takes 30-60 seconds. The app shows a "Waking up the server" loading screen.
 - **Memory**: Render free tier provides 512 MB RAM. EC2 t3.micro provides 1 GB. Large documents or many concurrent users may cause issues.
 - **File Size**: Maximum upload size is 10 MB per file.
@@ -24,7 +24,7 @@
 
 - **API Key Management**: The Google API key is stored as an environment variable, never committed to code. The `.env.example` file documents required variables.
 - **Input Validation**: All uploads are validated for file type (whitelist), file size (10 MB max), and content type. Query length is capped at 2000 characters.
-- **Per-IP Rate Limiting**: Chat and upload endpoints enforce per-IP rate limits (10 chats/hour, 5 uploads/hour) to prevent API abuse from individual visitors.
+- **Per-IP Rate Limiting**: Chat and upload endpoints enforce per-IP rate limits (30 chats/hour, 10 uploads/hour) to prevent API abuse from individual visitors.
 - **Output Verification**: The Verification Agent checks that responses are grounded in source documents, reducing hallucination risk.
 - **No Code Execution**: The system does not execute any code from uploaded documents.
 - **CORS**: Cross-origin requests are restricted to configured origins. Production URLs added via `EXTRA_CORS_ORIGINS` env var.

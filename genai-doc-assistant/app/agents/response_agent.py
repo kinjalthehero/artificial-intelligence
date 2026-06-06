@@ -1,3 +1,17 @@
+"""
+Response Agent — Final Answer Generation
+==========================================
+Generates the final user-facing answer with source citations.
+
+Takes the reasoning agent's analysis and produces a clean, well-formatted
+response with [Source N] citations that map to specific document chunks.
+
+Why separate from the reasoning agent?
+- Reasoning focuses on UNDERSTANDING (extracting facts, finding gaps)
+- Response focuses on PRESENTATION (clear formatting, proper citations, user-friendly language)
+- Slightly higher temperature (0.5) for more natural, readable prose
+"""
+
 from google import genai
 from google.genai import types
 
@@ -6,6 +20,8 @@ from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
 
+# Strict rules ensure the response is grounded — no external knowledge,
+# mandatory source citations, and explicit acknowledgment of gaps
 SYSTEM_PROMPT = """You are a response generation agent in a document Q&A system.
 Given an analysis of document content and source chunks, generate a clear, well-structured answer.
 
@@ -25,6 +41,12 @@ class ResponseAgent:
     async def generate(
         self, question: str, analysis: str, chunks: list[dict]
     ) -> str:
+        """Generate the final answer from the analysis and source metadata.
+
+        The prompt includes: the original question, the reasoning agent's analysis,
+        and a list of available sources (filename + page) so the LLM can cite them.
+        """
+        # Build source reference list for the LLM to cite
         source_summary = []
         for i, chunk in enumerate(chunks, 1):
             source_summary.append(
@@ -44,7 +66,7 @@ class ResponseAgent:
             contents=prompt,
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM_PROMPT,
-                temperature=0.5,
+                temperature=0.5,  # Moderate creativity for natural, readable prose
                 max_output_tokens=4096,
             ),
         )

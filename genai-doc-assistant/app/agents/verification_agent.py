@@ -1,3 +1,26 @@
+"""
+Verification Agent — Output Guardrail (Hallucination Detection)
+================================================================
+Checks whether the generated response is actually grounded in the source documents.
+
+This is a safety control — even with RAG, LLMs can hallucinate (make up facts that
+aren't in the documents). The verification agent acts as a final quality check:
+
+1. Compares the answer against the source chunks
+2. Identifies any claims not supported by the sources
+3. Returns a grounding score (0.0 to 1.0)
+4. If not grounded, a disclaimer is added to the response
+
+Why very low temperature (0.1)?
+- Verification should be deterministic and strict, not creative
+- We want consistent, reproducible grounding assessments
+- Higher temperature would make the verifier less reliable
+
+Why structured JSON output?
+- The orchestrator needs to programmatically check grounded=true/false
+- The confidence score is displayed in the agent workflow UI
+"""
+
 import json
 
 from google import genai
@@ -27,6 +50,12 @@ class VerificationAgent:
         self._model = f"models/{settings.GEMINI_MODEL}"
 
     async def verify(self, answer: str, chunks: list[dict]) -> dict:
+        """Verify that the answer is grounded in the source chunks.
+
+        Returns: {"grounded": bool, "confidence": float, "issues": list[str]}
+        Falls back to grounded=True if JSON parsing fails (fail-open, not fail-closed).
+        """
+        # Format source chunks for comparison
         context_parts = []
         for i, chunk in enumerate(chunks, 1):
             context_parts.append(f"[Source {i}]\n{chunk['content']}")
@@ -43,11 +72,12 @@ class VerificationAgent:
             contents=prompt,
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM_PROMPT,
-                temperature=0.1,
+                temperature=0.1,  # Very low: deterministic, strict verification
                 max_output_tokens=512,
             ),
         )
 
+        # Parse JSON response, handling markdown code blocks
         text = (response.text or "{}").strip()
         if text.startswith("```"):
             text = text.split("\n", 1)[1] if "\n" in text else text[3:]

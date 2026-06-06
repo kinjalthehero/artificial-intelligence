@@ -1,3 +1,31 @@
+"""
+Chat Endpoint — SSE Streaming with Agent Pipeline
+===================================================
+The main chat endpoint that processes user questions via Server-Sent Events (SSE).
+
+Why SSE (Server-Sent Events)?
+- Real-time token-by-token streaming (like ChatGPT's typing effect)
+- One-way server→client stream over HTTP (simpler than WebSockets)
+- Supported by all modern browsers via the fetch API
+- Works through reverse proxies without special configuration
+
+Flow:
+1. Rate limit check (per-IP)
+2. Save user message to database
+3. If documents attached → run 5-agent pipeline (or fallback to direct RAG)
+4. If no documents → direct Gemini chat
+5. Stream response via SSE events: conversation_id → agent_steps → tokens → sources → done
+
+SSE Event Types:
+- conversation_id: the UUID of the (possibly new) conversation
+- agent_step: real-time progress of each agent (planner, retriever, etc.)
+- token: a chunk of the response text (streamed piece by piece)
+- sources: document chunks used for citations [Source N]
+- agent_steps: complete agent workflow trace (for UI display)
+- done: signals the stream is complete
+- error: error message if something went wrong
+"""
+
 import json
 import uuid
 

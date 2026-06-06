@@ -1,3 +1,20 @@
+"""
+Reasoning Agent — Content Analysis and Synthesis
+==================================================
+Analyzes retrieved document chunks to extract key facts, identify relevance,
+and synthesize a structured analysis for the response agent.
+
+Why separate reasoning from response generation?
+- Analysis vs. presentation: the reasoning agent focuses on UNDERSTANDING the content,
+  while the response agent focuses on PRESENTING it clearly to the user
+- Better quality: two-step process (analyze then respond) produces more thorough,
+  accurate answers than trying to do both in one LLM call
+- Transparency: the analysis can be logged/inspected for debugging
+
+The reasoning agent receives the raw chunks with their relevance scores and
+produces a structured summary that the response agent can work with.
+"""
+
 from google import genai
 from google.genai import types
 
@@ -24,9 +41,15 @@ class ReasoningAgent:
         self._model = f"models/{settings.GEMINI_MODEL}"
 
     async def analyze(self, question: str, chunks: list[dict]) -> str:
+        """Analyze retrieved chunks and produce a structured synthesis.
+
+        Each chunk is labeled with its source file, page number, and relevance score
+        so the reasoning agent can weigh more relevant chunks higher.
+        """
         if not chunks:
             return "No relevant content was found in the documents."
 
+        # Format chunks with metadata for the LLM
         context_parts = []
         for i, chunk in enumerate(chunks, 1):
             context_parts.append(
@@ -46,7 +69,7 @@ class ReasoningAgent:
             contents=prompt,
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM_PROMPT,
-                temperature=0.3,
+                temperature=0.3,  # Low temperature for factual analysis
                 max_output_tokens=2048,
             ),
         )

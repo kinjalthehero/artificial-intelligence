@@ -167,11 +167,16 @@ genai-doc-assistant/
 
 See the full [AWS Deployment Guide](aws/DEPLOY_AWS.md) for step-by-step instructions with AWS concepts explained.
 
-### Rate Limiting
+### Rate Limiting & Cost Protection
 
 Per-IP rate limiting protects the Gemini API from abuse:
-- Chat: 10 queries/hour per visitor
-- Uploads: 5 uploads/hour per visitor
+- Chat: 30 queries/hour per visitor
+- Uploads: 10 uploads/hour per visitor
+
+Cost controls:
+- Gemini API spend cap: $5/month (hard cap, usage pauses when reached)
+- Google Cloud budget alert: $5/month with email notifications at 50%, 80%, 100%
+- AWS budget alert: $1/month for EC2 free tier monitoring
 
 ## License
 
