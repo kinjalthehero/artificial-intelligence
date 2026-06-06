@@ -40,7 +40,7 @@ export function useChat(): UseChatReturn {
       documentIds: string[],
     ): Promise<string | null> => {
       const userMsg: MessageWithSources = {
-        id: crypto.randomUUID(),
+        id: self.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2) + Date.now().toString(36),
         conversation_id: conversationId || '',
         role: 'user',
         content: text,
@@ -49,7 +49,7 @@ export function useChat(): UseChatReturn {
       setMessages((prev) => [...prev, userMsg]);
 
       const assistantMsg: MessageWithSources = {
-        id: crypto.randomUUID(),
+        id: self.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2) + Date.now().toString(36),
         conversation_id: conversationId || '',
         role: 'assistant',
         content: '',
