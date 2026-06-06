@@ -1,26 +1,65 @@
 # GenAI Document Assistant
 
-**[Live Demo](https://genai-doc-assistant-slnu.onrender.com)** | [API Docs](https://genai-doc-assistant-slnu.onrender.com/docs)
+**Developed by Kinjal Mistry**
 
-AI-powered document Q&A application with RAG pipeline and multi-agent reasoning.
+**[Live Demo (Render)](https://genai-doc-assistant-slnu.onrender.com)** | **[Live Demo (AWS)](http://100.29.17.139)** | [API Docs](https://genai-doc-assistant-slnu.onrender.com/docs)
 
-Upload documents (PDF, TXT, CSV, Excel, JSON, YAML), ask natural language questions, and get accurate, grounded answers with source citations — powered by a 5-agent reasoning pipeline.
+AI-powered document Q&A application with RAG (Retrieval-Augmented Generation) pipeline and multi-agent reasoning. Upload documents in 6 formats, ask natural language questions, and get accurate, grounded answers — powered by a 5-agent AI reasoning pipeline.
 
-> **Note:** The live demo runs on Render.com free tier and may take 30-60 seconds to wake up after inactivity.
+> **Note:** The Render demo may take 30-60 seconds to wake up after inactivity. The AWS demo is always running.
 
 ## Architecture
 
+```mermaid
+graph TB
+    subgraph Frontend["React Frontend (TypeScript + Tailwind)"]
+        UI[Chat UI] --> Upload[Document Upload]
+        UI --> Workflow[Agent Workflow Display]
+    end
+
+    subgraph Backend["FastAPI Backend (Python)"]
+        API[REST API + SSE Streaming]
+        
+        subgraph DocPipeline["Document Pipeline"]
+            Parse[Parse 6 Formats] --> Chunk[Chunk - LlamaIndex SentenceSplitter]
+            Chunk --> Embed[Embed - Gemini embedding-001]
+            Embed --> Store[Store - ChromaDB]
+        end
+
+        subgraph AgentPipeline["5-Agent Reasoning Pipeline"]
+            P[1. Planner Agent] --> R[2. Retriever Agent]
+            R --> Re[3. Reasoning Agent]
+            Re --> Res[4. Response Agent]
+            Res --> V[5. Verification Agent]
+        end
+    end
+
+    subgraph External["External Services"]
+        Gemini[Google Gemini 2.5 Flash]
+        ChromaDB[(ChromaDB Vector Store)]
+        SQLite[(SQLite Database)]
+    end
+
+    Frontend -->|HTTP/SSE| Backend
+    API --> DocPipeline
+    API --> AgentPipeline
+    AgentPipeline --> Gemini
+    DocPipeline --> ChromaDB
+    R --> ChromaDB
+    API --> SQLite
 ```
-User → React Frontend → FastAPI Backend → Agent Pipeline → Gemini 2.5 Flash
-                                              │
-                              ┌────────────────┼────────────────┐
-                              ▼                ▼                ▼
-                          Planner →     Retriever →      Reasoning →
-                                                                │
-                                                    Response → Verify
-                                                                │
-                              ChromaDB ◄────────────────────────┘
-                           (Vector Store)
+
+### How It Works
+
+```
+Document Upload Flow:
+  File → Validate (type, size) → Parse (PyPDF2/pandas/json/yaml)
+  → Chunk (SentenceSplitter, 512 tokens) → Embed (Gemini) → Store (ChromaDB)
+
+Query Flow (5-Agent Pipeline):
+  Question → Planner (decompose query) → Retriever (vector search)
+  → Reasoning (analyze chunks) → Response (generate answer)
+  → Verification (check grounding) → Stream to user via SSE
 ```
 
 ## Tech Stack

@@ -129,7 +129,8 @@ export function Sidebar({
 
       {/* Footer */}
       <div className="p-4 text-xs" style={{ color: 'var(--color-text-tertiary)', borderTop: '1px solid var(--color-border)' }}>
-        GenAI Document Assistant v1.0
+        <div className="font-medium" style={{ color: 'var(--color-text-secondary)' }}>Developed by Kinjal Mistry</div>
+        <div className="mt-0.5">GenAI Document Assistant v1.0</div>
       </div>
     </div>
   );

@@ -27,7 +27,7 @@ Given an analysis of document content and source chunks, generate a clear, well-
 
 Rules:
 - Answer ONLY from the provided information — do not add external knowledge
-- Cite sources using [Source N] notation (matching the chunk numbers)
+- Do NOT include [Source N] citations or references in the answer text
 - If information is insufficient, explicitly state what is missing
 - Use markdown formatting for readability (headers, lists, bold for key terms)
 - Be concise but thorough"""

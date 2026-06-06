@@ -17,10 +17,11 @@ export function MessageBubble({ message, currentAgent, isLast }: MessageBubblePr
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
       <div
-        className={`max-w-[80%] rounded-2xl px-4 py-3 ${isUser ? 'rounded-br-sm' : 'rounded-bl-sm'}`}
+        className={`max-w-[80%] rounded-2xl px-5 py-3.5 ${isUser ? 'rounded-br-sm shadow-md' : 'rounded-bl-sm shadow-sm'}`}
         style={{
-          backgroundColor: isUser ? 'var(--color-bg-user-msg)' : 'var(--color-bg-assistant-msg)',
+          background: isUser ? 'var(--color-bg-user-msg)' : 'var(--color-bg-assistant-msg)',
           color: isUser ? 'var(--color-text-on-primary)' : 'var(--color-text-primary)',
+          border: isUser ? 'none' : '1px solid var(--color-border)',
         }}
       >
         {!isUser && message.agentSteps && message.agentSteps.length > 0 && (
